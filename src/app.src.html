@@ -1,0 +1,692 @@
+<title>100만원으로 결혼하기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+/* Layout concept: 연못 색 배경 위에 오리 커플이 말풍선으로 질문하고, 결과는 오리 장면 카드 아래 탭 세 개(예산·장소·일정). 색은 그림의 주황 부리와 검정 모자에서 가져옴. 예산은 100만원 고정. */
+:root{
+  --bg:#D6E6EA; --scene:#C6DDE3; --water:#A6C9D2; --surface:#FBFDFD; --surface-2:#E6EFF1;
+  --fg:#1B2428; --muted:#526870; --line:#B6CCD3; --bline:#1F2326;
+  --ink:#1F2326; --on-ink:#FFFFFF; --shade:rgba(0,0,0,0);
+  --accent:#E39A12; --accent-text:#8A5600; --accent-soft:#FCEFD3; --bar-2:#9DBFC8; --drop:#5DAAD0;
+  --ok:#25744A; --ok-soft:#DCEFE3; --warn:#8A5F00; --warn-soft:#F7EBC8; --bad:#B3392A; --bad-soft:#F6DCD6;
+  --f-display:"Gaegu","Nanum Pen Script","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F2227; --scene:#1A383F; --water:#0E2328; --surface:#173038; --surface-2:#1E3C45;
+    --fg:#E8F1F2; --muted:#9FB6BC; --line:#2B474F; --bline:#9FBAC1;
+    --ink:#F2F6F6; --on-ink:#10252A; --shade:rgba(6,20,28,.38);
+    --accent:#F2B43E; --accent-text:#F2B43E; --accent-soft:#3A3114; --bar-2:#4F7D89; --drop:#8CCBE8;
+    --ok:#6FCB93; --ok-soft:#1B3427; --warn:#E0B550; --warn-soft:#3A3014; --bad:#F08C78; --bad-soft:#40201A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F2227; --scene:#1A383F; --water:#0E2328; --surface:#173038; --surface-2:#1E3C45;
+  --fg:#E8F1F2; --muted:#9FB6BC; --line:#2B474F; --bline:#9FBAC1;
+  --ink:#F2F6F6; --on-ink:#10252A; --shade:rgba(6,20,28,.38);
+  --accent:#F2B43E; --accent-text:#F2B43E; --accent-soft:#3A3114; --bar-2:#4F7D89; --drop:#8CCBE8;
+  --ok:#6FCB93; --ok-soft:#1B3427; --warn:#E0B550; --warn-soft:#3A3014; --bad:#F08C78; --bad-soft:#40201A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--f-body); font-size:15px; line-height:1.6;
+  word-break:keep-all; overflow-wrap:break-word;
+  padding-block:20px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.app{max-width:460px;margin:0 auto}
+button{font:inherit;color:inherit}
+a{color:var(--accent-text)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+[tabindex="-1"]:focus{outline:none}
+h1,h2,h3,p,ul,dl,dd{margin:0}
+ul{padding:0;list-style:none}
+.screen{animation:rise .28s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen,.duckg,.fx,.spk,.rip,.bobber,.swing,.away{animation:none!important}}
+
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--accent-text)}
+.q{font-family:var(--f-display);font-weight:700;font-size:32px;line-height:1.25;text-wrap:balance;margin-top:10px}
+
+/* 낚시 장면: 사용자가 그린 연못 그림 위, 갈색 다리에서 오리 커플이 낚시한다 */
+.duckg{transform-box:fill-box;transform-origin:50% 100%;animation:bob 2.8s ease-in-out infinite}
+.duckg.d2{animation-delay:.9s}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(-1deg)}}
+.duckg.m-bad{animation-name:shake;animation-duration:1.1s}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-2.5deg)}75%{transform:rotate(2.5deg)}}
+.fx{display:none}
+.m-warn .drop,.m-bad .drop,.m-bad .drop2{display:block;animation:drip 1.8s ease-in infinite}
+.m-ok .spark,.m-ok .spark2{display:block;animation:twinkle 2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.spk{animation:twinkle 2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes drip{0%{transform:translateY(-8px);opacity:0}20%{opacity:1}100%{transform:translateY(28px);opacity:0}}
+@keyframes twinkle{0%,100%{transform:scale(.75);opacity:.6}50%{transform:scale(1.1);opacity:1}}
+.rip{fill:none;stroke:#fff;stroke-width:2.5;transform-box:fill-box;transform-origin:center;animation:rip 2.4s ease-out infinite}
+.rip.r2{animation-delay:1.2s}
+@keyframes rip{0%{transform:scale(.5);opacity:.95}100%{transform:scale(1.8);opacity:0}}
+.bobber{animation:floatb 2.6s ease-in-out infinite}
+.bobber.dip{animation:dip 1.1s ease-in-out infinite}
+@keyframes floatb{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@keyframes dip{0%,100%{transform:translateY(0)}40%{transform:translateY(16px)}}
+.swing{animation:swing 1.3s ease-in-out infinite}
+@keyframes swing{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.away{animation:away 3.2s ease-in infinite}
+@keyframes away{0%{transform:translateX(0);opacity:.9}100%{transform:translateX(70px);opacity:0}}
+.pond{display:block;line-height:0;border-radius:18px;overflow:hidden;border:1.5px solid var(--bline)}
+.pond svg{display:block;width:100%;height:auto}
+.pond .rod{fill:none;stroke:#7A4B22;stroke-width:5;stroke-linecap:round}
+.pond .ln{fill:none;stroke:#3E4B55;stroke-width:2.4;stroke-linecap:round;opacity:.85}
+
+.bubble{position:relative;min-width:0;background:var(--surface);border:2px solid var(--bline);border-radius:22px 26px 24px 20px;padding:12px 16px;font-family:var(--f-display);font-size:22px;line-height:1.35;font-weight:700;color:var(--fg)}
+.bubble::after{content:"";position:absolute;width:14px;height:14px;background:var(--surface);border:0 solid var(--bline);transform:rotate(45deg)}
+.bubble.b-left::after{left:-9px;top:26px;border-width:0 0 2px 2px}
+.bubble.b-down{margin-bottom:14px}
+.bubble.b-down::after{bottom:-9px;left:var(--tail,25%);border-width:0 2px 2px 0}
+.bubble .q{margin:0;font-size:27px;line-height:1.3}
+.ack{font-family:var(--f-body);font-size:13px;font-weight:400;color:var(--muted);margin-bottom:2px}
+.say{display:flex;align-items:center;gap:14px}
+.say .bubble{flex:1}
+.say.sm{margin-top:10px}
+.say.sm .bubble{font-size:18px;font-weight:400}
+.say.sm .pond{width:44%;flex:none;border-radius:12px}
+.lead,.hint{color:var(--muted);margin-top:12px}
+.fine{font-size:12.5px;color:var(--muted);margin-top:14px}
+
+.intro{padding-top:4px}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px}
+.rules div{padding:12px 10px;border-radius:12px;background:var(--surface);border:1px solid var(--line);text-align:center}
+.rules b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
+.rules span{font-size:12.5px;color:var(--muted)}
+.feat{margin-top:22px;border-top:1px solid var(--line)}
+.feat li{display:flex;flex-direction:column;gap:2px;padding:14px 0;border-bottom:1px solid var(--line)}
+.feat b{font-weight:600}
+.feat span{color:var(--muted);font-size:14px}
+.actions{display:flex;flex-direction:column;gap:10px;margin-top:28px}
+.btn{min-height:52px;padding:12px 18px;border-radius:14px;border:2px solid var(--ink);background:var(--ink);color:var(--on-ink);font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn:hover{filter:brightness(1.18)}
+.btn.ghost:hover{border-color:var(--ink);filter:none}
+.btn.sm{min-height:44px;padding:8px 14px;font-size:14px}
+
+.qtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.back{min-height:44px;padding:0 12px 0 0;border:0;background:none;color:var(--muted);cursor:pointer;font-size:14px}
+.back:hover{color:var(--fg)}
+.count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.prog{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:26px}
+.prog i{height:4px;border-radius:2px;background:var(--line)}
+.prog i.on{background:var(--accent)}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:24px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:62px;padding:12px 16px;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--ink)}
+.opt.sel{background:var(--accent-soft);border-color:var(--accent)}
+.ot{display:flex;flex-direction:column;min-width:0}
+.ot b{font-weight:600;font-size:16px}
+.ot small{color:var(--muted);font-size:13px}
+.chev{color:var(--muted);font-size:20px;line-height:1}
+
+.load{padding-top:40px}
+
+.hero{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;overflow:hidden}
+.hero .pond{border-radius:0;border:0}
+.hsay{background:var(--scene);padding:16px 16px 22px}
+.hsay .bubble{margin-bottom:0}
+.hero .bubble{font-size:21px}
+.hdata{padding:18px 20px 20px}
+.h-eyebrow{font-size:13px;color:var(--muted)}
+.h-days{display:flex;align-items:baseline;gap:6px;margin-top:2px}
+.h-days .num{font-size:52px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.h-days .unit{font-size:20px}
+.h-days .sub{margin-left:8px;font-size:14px;color:var(--muted)}
+.h-date{font-size:14px;color:var(--muted);margin-top:2px}
+.h-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.h-grid dt{font-size:12px;color:var(--muted)}
+.h-grid dd{font-weight:600;font-variant-numeric:tabular-nums}
+.h-grid div{min-width:0}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:14px;padding:6px;background:var(--surface-2);border-radius:12px}
+.tabs button{min-height:44px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:600;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.panel{margin-top:20px}
+.sec{font-family:var(--f-display);font-size:19px;margin:26px 0 10px}
+.panel>.sec:first-child{margin-top:0}
+
+.status{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:12px;background:var(--ok-soft)}
+.status.warn{background:var(--warn-soft)}
+.status.bad{background:var(--bad-soft)}
+.pill{flex:none;font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:99px;color:var(--ok);border:1px solid currentColor;white-space:nowrap}
+.status.warn .pill{color:var(--warn)}
+.status.bad .pill{color:var(--bad)}
+.status p{font-size:14.5px}
+
+.use{margin-top:16px}
+.use .pgrow b{color:var(--fg)}
+.rows li{padding:12px 0;border-bottom:1px solid var(--line)}
+.rl{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.rn{display:flex;flex-direction:column;min-width:0}
+.rn small{color:var(--muted);font-size:12.5px}
+.ra{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--bar-2);min-width:2px}
+.bar.main i{background:var(--accent)}
+.bar.zero i{display:none}
+.total{display:flex;justify-content:space-between;padding:14px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+.tips{display:flex;flex-direction:column;gap:8px}
+.tips li{padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-size:14.5px;display:flex;justify-content:space-between;gap:12px}
+.tips li b{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--accent-text)}
+
+.vcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}
+.vtag{display:inline-block;font-size:12px;font-weight:600;padding:2px 10px;border-radius:99px;background:var(--surface-2);color:var(--muted)}
+.vtag.pick{background:var(--accent-soft);color:var(--accent-text)}
+.vcard h3{font-family:var(--f-display);font-size:20px;margin-top:8px}
+.vdesc{color:var(--muted);font-size:14px;margin-top:2px}
+.vcost{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:14px}
+.vcost b{font-variant-numeric:tabular-nums}
+.vmeta{margin-top:10px;font-size:14px;display:grid;gap:6px}
+.vmeta dt{font-size:12px;font-weight:600;color:var(--muted)}
+.vcard .btn{margin-top:14px;width:100%;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.notice{margin-top:12px;padding:14px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:14px;display:grid;gap:8px}
+.notice b{font-weight:600}
+.src{font-size:12.5px;color:var(--muted)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 16px;margin-top:10px}
+summary{min-height:48px;display:flex;align-items:center;font-weight:600;cursor:pointer}
+details ul{padding-bottom:12px;display:grid;gap:10px;font-size:14px}
+details li span{display:block;color:var(--muted);font-size:13px}
+
+.pgrow{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pgbar{height:6px;border-radius:3px;background:var(--surface-2);margin:6px 0 4px;overflow:hidden}
+.pgbar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.pgbar i.over{background:var(--bad)}
+.task{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.task input{width:20px;height:20px;margin:3px 0 0;accent-color:var(--accent)}
+.task .t{font-weight:600}
+.task .d{font-size:13.5px;color:var(--muted)}
+.task .w{display:inline-block;margin-top:4px;font-size:12.5px;font-weight:600;color:var(--accent-text);font-variant-numeric:tabular-nums}
+.task.now .w{color:var(--bad)}
+.task.done .t{text-decoration:line-through;color:var(--muted)}
+.task.done .w{color:var(--muted)}
+.alert{padding:12px 14px;border-radius:12px;background:var(--warn-soft);font-size:14px;margin-bottom:6px}
+.draft{width:100%;min-height:300px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--fg);font:13.5px/1.65 var(--f-body);resize:vertical}
+.foot{display:flex;flex-direction:column;gap:10px;margin-top:32px}
+</style>
+
+<div class="app"><div id="screen" class="screen"></div></div>
+
+<script>
+(function(){
+'use strict';
+
+var BUDGET=100; /* 만원 */
+
+var DATES=[
+ {v:'y2026',label:'올해 안 (11~12월)',sub:'약 2개월 뒤 · 일정이 많이 촉박해요',date:[2026,12,19],peak:false},
+ {v:'q1',label:'2027년 1~2월',sub:'약 4개월 뒤 · 비수기',date:[2027,2,13],peak:false},
+ {v:'spring',label:'2027년 봄 (3~5월)',sub:'성수기 · 인기 시설은 예약이 일찍 차요',date:[2027,4,24],peak:true},
+ {v:'summer',label:'2027년 여름 (6~8월)',sub:'비수기 · 예약 여유가 있는 편이에요',date:[2027,7,10],peak:false},
+ {v:'fall',label:'2027년 가을 (9~11월)',sub:'성수기 · 인기 시설은 예약이 일찍 차요',date:[2027,10,16],peak:true},
+ {v:'y2028',label:'2028년 이후',sub:'1년 이상 여유 있게',date:[2028,4,22],peak:true},
+ {v:'tbd',label:'아직 못 정했어요',sub:'2027년 가을로 가정해서 계산해요',date:[2027,10,16],peak:true,tbd:true}
+];
+var REGIONS=[
+ {v:'seoul',label:'서울',subs:[
+  {v:'gn',label:'강남·서초·송파',sub:'물가가 높은 편',f:1.25,kw:'강남 서초'},
+  {v:'mp',label:'마포·용산·종로',sub:'도심 접근성이 좋아요',f:1.1,kw:'마포 용산'},
+  {v:'gs',label:'강서·영등포·구로',sub:'중간 물가',f:1.0,kw:'강서 영등포'},
+  {v:'gb',label:'강북·노원·성북',sub:'비교적 합리적이에요',f:0.95,kw:'노원 성북'}]},
+ {v:'gg',label:'경기·인천',subs:[
+  {v:'bd',label:'성남·분당·판교',sub:'물가가 높은 편',f:1.1,kw:'분당 성남'},
+  {v:'sw',label:'수원·용인',sub:'중간 물가',f:1.0,kw:'수원 용인'},
+  {v:'gy',label:'고양·파주',sub:'비교적 합리적이에요',f:0.95,kw:'고양 파주'},
+  {v:'ic',label:'인천·부천',sub:'비교적 합리적이에요',f:0.95,kw:'인천 부천'}]},
+ {v:'bs',label:'부산·경남',subs:[
+  {v:'hd',label:'해운대·수영',sub:'바다 근처',f:1.0,kw:'해운대'},
+  {v:'sm',label:'서면·부산진',sub:'중심 상권',f:0.95,kw:'서면 부산진'},
+  {v:'cw',label:'창원·김해',sub:'합리적이에요',f:0.85,kw:'창원 김해'}]},
+ {v:'dg',label:'대구·경북',subs:[
+  {v:'ss',label:'수성·중구',sub:'대구 중심',f:0.9,kw:'대구 수성'},
+  {v:'dk',label:'달서·북구',sub:'합리적이에요',f:0.85,kw:'대구 달서'},
+  {v:'gm',label:'구미·포항',sub:'합리적이에요',f:0.8,kw:'구미 포항'}]},
+ {v:'dj',label:'대전·충청',subs:[
+  {v:'dj',label:'대전',sub:'중부권 중심',f:0.85,kw:'대전'},
+  {v:'sj',label:'세종·청주',sub:'신도시와 청주권',f:0.85,kw:'세종 청주'},
+  {v:'ca',label:'천안·아산',sub:'수도권 접근이 좋아요',f:0.85,kw:'천안 아산'}]},
+ {v:'gj',label:'광주·전라',subs:[
+  {v:'gj',label:'광주',sub:'호남권 중심',f:0.85,kw:'광주'},
+  {v:'jj',label:'전주',sub:'합리적이에요',f:0.8,kw:'전주'},
+  {v:'ys',label:'여수·순천',sub:'합리적이에요',f:0.8,kw:'여수 순천'}]},
+ {v:'gw',label:'강원·제주',subs:[
+  {v:'cc',label:'춘천·원주',sub:'합리적이에요',f:0.8,kw:'춘천 원주'},
+  {v:'gn2',label:'강릉·속초',sub:'바다 근처',f:0.9,kw:'강릉 속초'},
+  {v:'jeju',label:'제주',sub:'섬 지역',f:1.0,kw:'제주'}]}
+];
+var GUESTS=[
+ {v:10,label:'10명 이하',sub:'가족과 가장 가까운 사람만'},
+ {v:20,label:'20명 내외',sub:'양가 가족 중심'},
+ {v:30,label:'30명 내외',sub:'가족과 친한 친구'},
+ {v:50,label:'50명 내외',sub:'100만원 안에서는 빠듯해요'}
+];
+var VENUES=[
+ {v:'public',label:'공공예식장·공공시설',sub:'대관료가 무료이거나 낮은 곳이 있어요',rent:0,kw:'공공예식장',
+  rentNote:'무료인 시설이 있고, 유료 시설은 30만~180만원 범위라는 보도가 있어요. 계산은 무료 시설 기준이고, 장식과 안내요원 비용은 따로 넣었어요.',
+  desc:'지자체가 정원이나 문화시설 같은 공간을 예식용으로 열어 둔 곳',
+  pro:'대관료가 없거나 낮아 예산을 식사에 쓸 수 있어요',
+  chk:'신청 시기, 하루 이용 시간, 하객 수 상한, 외부 음식 반입 여부를 확인하세요'},
+ {v:'restaurant',label:'식당·카페 룸',sub:'식사와 예식을 한 곳에서',rent:0,kw:'단체룸 식당',
+  rentNote:'대관료 대신 최소 주문 금액이 있을 수 있어요. 계산은 대관료 0원 기준이에요.',
+  desc:'식당이나 카페의 룸에서 식사와 예식을 함께 하는 방식',
+  pro:'식사 장소를 따로 구할 필요가 없어요',
+  chk:'룸 이용 시간, 최소 주문 금액, 장식과 음향 사용 가능 여부를 확인하세요'},
+ {v:'outdoor',label:'야외·집·마당',sub:'공원, 지인의 정원, 집',rent:3,kw:'공원 작은결혼식',
+  rentNote:'계산은 허가와 소품 약 3만원 기준이에요. 공원은 행사 허가가 필요한지 확인하세요.',
+  desc:'공원이나 지인의 정원, 집처럼 빌릴 필요가 없는 공간',
+  pro:'장소 비용이 거의 없고 분위기를 직접 꾸밀 수 있어요',
+  chk:'행사 허가 여부, 우천 때 실내 대안, 화장실과 전기 사용을 확인하세요'},
+ {v:'chapel',label:'교회·성당 등 종교시설',sub:'이용 조건은 곳마다 달라요',rent:5,kw:'예배당 결혼식',
+  rentNote:'계산은 사례 약 5만원 기준이에요. 이용 조건은 곳마다 달라요.',
+  desc:'소속 교회나 성당 같은 종교시설에서 올리는 예식',
+  pro:'장소 비용이 낮고 예식 진행이 정해져 있어요',
+  chk:'신자 여부 등 이용 조건을 확인하고, 식사 장소는 따로 정해야 해요'}
+];
+var MEALS_REST=[
+ {v:'r_full',label:'식당 정식',sub:'1인 약 3만원',per:3},
+ {v:'r_single',label:'식당 단품 메뉴',sub:'1인 약 2만원',per:2}
+];
+var MEALS_OTHER=[
+ {v:'catering',label:'케이터링',sub:'1인 약 2.5만원',per:2.5},
+ {v:'box',label:'도시락',sub:'1인 약 1.5만원',per:1.5},
+ {v:'snack',label:'다과와 간단한 식사',sub:'1인 약 1만원',per:1}
+];
+/* 장소·식대 외 항목. save는 줄일 때 아낄 수 있는 금액(만원) */
+var FIXED=[
+ {name:'의상 대여 (드레스·예복)',amt:10,cut:{label:'가지고 있는 옷으로 대체',save:10}},
+ {name:'메이크업·헤어',amt:8,cut:{label:'셀프 또는 지인 도움',save:8}},
+ {name:'사진·영상',amt:5,cut:{label:'지인 촬영과 휴대폰 영상',save:5}},
+ {name:'부케·꽃',amt:3,cut:{label:'작은 꽃다발 하나만',save:2}},
+ {name:'반지',amt:8,cut:{label:'반지 생략 또는 기존 반지 사용',save:8}},
+ {name:'청첩장·기타',amt:3,cut:{label:'모바일 청첩장만 보내기',save:2}}
+];
+var STEP_KEYS=['date','region','sub','guests','venue','meal'];
+var DEMO={date:'q1',region:'seoul',sub:'gs',guests:'20',venue:'public',meal:'box'};
+var WD=['일','월','화','수','목','금','토'];
+
+var state={view:'intro',step:0,ans:{},tab:'budget',checks:{},lock:false,ack:''};
+
+/* 사용자가 그린 그림: 모자 쓴 오리, 흰 오리, 연못(갈색 다리) */
+var IMG={cap:'data:image/webp;base64,__CAP__',white:'data:image/webp;base64,__WHITE__'};
+var PAINT='data:image/webp;base64,__PAINT__';
+var DROP='M10 1C10 1 2 12 2 18.5a8 8 0 0 0 16 0C18 12 10 1 10 1z',STAR='M12 1l2.6 8.4L23 12l-8.4 2.6L12 23l-2.6-8.4L1 12l8.4-2.6z';
+var DFX='<g class="fx drop"><path transform="translate(92 38) scale(1.5)" d="'+DROP+'" fill="var(--drop)"/></g>'+
+ '<g class="fx drop2"><path transform="translate(66 78)" d="'+DROP+'" fill="var(--drop)"/></g>'+
+ '<g class="fx spark"><path transform="translate(196 2) scale(1.4)" d="'+STAR+'" fill="var(--accent)"/></g>'+
+ '<g class="fx spark2"><path transform="translate(6 60)" d="'+STAR+'" fill="var(--accent)"/></g>';
+var FISH='<path d="M62 0C40-26 0-30-34-6L-62-26-54 0-62 26-34 6C0 30 40 26 62 0Z" fill="#E8452B"/><ellipse cx="4" cy="9" rx="28" ry="7" fill="#FFB89A" opacity=".55"/><circle cx="40" cy="-6" r="5.5" fill="#fff"/><circle cx="41.5" cy="-6" r="2.6" fill="#222"/>';
+function duckG(kind,x,y,mood,cls){
+  return '<g transform="translate('+x+' '+y+')"><g class="duckg'+(cls?' '+cls:'')+(mood?' m-'+mood:'')+'"><image href="'+IMG[kind]+'" width="230" height="209"/>'+DFX+'</g></g>';
+}
+function rod(h,t){
+  return '<path class="rod" d="M'+h[0]+' '+h[1]+'Q'+((h[0]+t[0])/2-10)+' '+((h[1]+t[1])/2-55)+' '+t[0]+' '+t[1]+'"/>';
+}
+function bobber(x,y,dip){
+  return '<g transform="translate('+x+' '+y+')"><ellipse class="rip" rx="18" ry="6" cy="7"/><ellipse class="rip r2" rx="18" ry="6" cy="7"/>'+
+   '<g class="bobber'+(dip?' dip':'')+'"><circle r="9" fill="#fff" stroke="#3E4B55" stroke-width="1.2"/><path d="M-9 0A9 9 0 0 1 9 0Z" fill="#E2402A"/></g></g>';
+}
+function fishG(x,y,s,op,cls){
+  return '<g transform="translate('+x+' '+y+') scale('+s+')" opacity="'+op+'"><g class="'+(cls||'')+'">'+FISH+'</g></g>';
+}
+function hook(x,y){
+  return '<g transform="translate('+x+' '+y+')"><g class="swing"><path d="M0 0V12a6 6 0 1 1-9 4" fill="none" stroke="#3E4B55" stroke-width="2.4" stroke-linecap="round"/></g></g>';
+}
+function splash(x,y){
+  var s='<g transform="translate('+x+' '+y+')" fill="#fff" stroke="#5DAAD0" stroke-width="1.2">';
+  [[-34,-10,5],[-20,-26,4],[0,-34,6],[22,-24,4],[36,-8,5],[-8,-14,3],[14,-12,3]].forEach(function(d){s+='<circle cx="'+d[0]+'" cy="'+d[1]+'" r="'+d[2]+'"/>'});
+  return s+'<ellipse cx="0" cy="4" rx="40" ry="8" fill="none"/></g>';
+}
+function sparkle(x,y,k){
+  return '<g transform="translate('+x+' '+y+')"><g class="spk"><path transform="scale('+(1.6*(k||1))+') translate(-12 -12)" d="'+STAR+'" fill="var(--accent)" stroke="#fff" stroke-width="1"/></g></g>';
+}
+/* state: idle(낚시 중) | catch(잡았다) | bite(입질) | wait(아직 안 물어요) | miss(놓쳤다) */
+function fishScene(st,cls){
+  st=st||'idle';
+  var capMood=st==='wait'?'warn':(st==='miss'?'bad':(st==='catch'?'ok':''));
+  var whiteMood=st==='miss'?'bad':(st==='catch'?'ok':'');
+  var o='<image href="'+PAINT+'" x="300" y="300" width="800" height="520"/>'+
+   '<rect x="300" y="300" width="800" height="520" fill="var(--shade)"/>'+
+   '<ellipse cx="525" cy="590" rx="92" ry="13" fill="#7A4B22" opacity=".28"/><ellipse cx="690" cy="645" rx="92" ry="13" fill="#7A4B22" opacity=".28"/>'+
+   duckG('cap',410,376,capMood)+duckG('white',575,431,whiteMood,'d2')+
+   rod([589,506],[880,355])+'<path class="ln" d="M880 355Q897 545 905 700"/>'+bobber(905,706,false);
+  if(st==='catch'){
+    o+='<path class="rod" d="M754 561Q930 470 1000 455"/><path class="ln" d="M1000 455L1004 548"/>'+
+     '<g transform="translate(1004 548)"><g class="swing"><g transform="translate(0 87) rotate(-90) scale(1.4)">'+FISH+'</g></g></g>'+
+     splash(1004,738)+sparkle(950,560)+sparkle(1062,600,.8)+sparkle(1030,500,1.1);
+  }else if(st==='miss'){
+    o+=rod([754,561],[1005,420])+'<path class="ln" d="M1005 420Q1010 480 1028 520"/>'+hook(1028,520)+fishG(1020,752,.7,.8,'away');
+  }else{
+    var bite=st==='bite';
+    o+=rod([754,561],[1005,420])+'<path class="ln" d="M1005 420Q1015 600 1020 722"/>'+(bite?fishG(1020,764,.85,.4,''):'')+bobber(1020,728,bite);
+  }
+  return '<div class="pond'+(cls?' '+cls:'')+'" aria-hidden="true"><svg viewBox="340 330 720 470" focusable="false">'+o+'</svg></div>';
+}
+var screen=document.getElementById('screen');
+
+function won(m){
+  m=Math.round(m);
+  if(m<=0)return '0원';
+  if(m>=10000){var e=Math.floor(m/10000),r=m%10000;return r?e+'억 '+r.toLocaleString('ko-KR')+'만원':e+'억원'}
+  return m.toLocaleString('ko-KR')+'만원';
+}
+function man1(x){return (Math.round(x*10)/10).toString()+'만원'}
+function opts(key,a){
+  a=a||state.ans;
+  if(key==='date')return DATES;
+  if(key==='region')return REGIONS;
+  if(key==='sub'){var r=find('region',a.region,a);return r?r.subs:[]}
+  if(key==='guests')return GUESTS;
+  if(key==='venue')return VENUES;
+  return a.venue==='restaurant'?MEALS_REST:MEALS_OTHER;
+}
+function find(key,v,a){
+  var list=opts(key,a||state.ans);
+  for(var i=0;i<list.length;i++){if(String(list[i].v)===String(v))return list[i]}
+  return null;
+}
+function ymd(arr){return new Date(arr[0],arr[1]-1,arr[2])}
+function fmtShort(d){return (d.getMonth()+1)+'월 '+d.getDate()+'일'}
+function fmtFull(d){return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+WD[d.getDay()]+'요일'}
+function fm(sub){return 1+(sub.f-1)*0.6}
+
+function calc(a){
+  var d=find('date',a.date,a),sub=find('sub',a.sub,a),reg=find('region',a.region,a);
+  var g=+a.guests,ven=find('venue',a.venue,a),meal=find('meal',a.meal,a);
+  var today=new Date();today=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  var wd=ymd(d.date),days=Math.round((wd-today)/864e5);
+  var per=meal.per*fm(sub),mealTotal=Math.round(per*g);
+  var rows=[
+   {name:'장소 사용',note:ven.label,amt:ven.rent},
+   {name:'식대',note:g+'명 × 1인 '+man1(per),amt:mealTotal,main:true}
+  ];
+  var decor={public:10,restaurant:5,outdoor:10,chapel:5}[ven.v];
+  var decorNote=(ven.v==='restaurant'||ven.v==='chapel')?'기본 장식이 있어 적게 잡았어요':'빈 공간이라 꽃과 소품이 필요해요';
+  rows.push({name:'장소 장식 (꽃·소품)',note:decorNote,amt:decor,cut:{label:'조화와 직접 만든 소품으로 꾸미기',save:Math.round(decor/2)}});
+  var staffN=g<=10?1:(g<=30?2:3),staffAmt=staffN*5;
+  rows.push({name:'안내요원 알바비',note:staffN+'명 × 5만원 (4시간 기준)',amt:staffAmt,cut:{label:'가족·지인에게 안내 부탁하기',save:staffAmt}});
+  FIXED.forEach(function(f){rows.push({name:f.name,amt:f.amt,cut:f.cut})});
+  rows.push({name:'혼인신고 (구청)',note:'수수료 없음',amt:0});
+  var total=0;rows.forEach(function(r){total+=r.amt});
+  var reserve=BUDGET-total;
+  var st,over=total-BUDGET;
+  if(over>0)st={lv:'bad',label:'예산 초과',msg:'합계가 '+won(total)+'라 100만원보다 '+won(over)+' 많아요. 아래 방법으로 맞춰 보세요.'};
+  else if(reserve<5)st={lv:'warn',label:'빠듯해요',msg:'100만원 안에 들어오지만 예비비가 '+won(reserve)+'뿐이에요. 추가 비용이 생기면 넘칠 수 있어요.'};
+  else if(reserve<15)st={lv:'ok',label:'맞출 수 있어요',msg:'합계 '+won(total)+'로 100만원 안에 들어와요. 예비비 '+won(reserve)+'가 남아요.'};
+  else st={lv:'ok',label:'여유 있어요',msg:'합계 '+won(total)+'로 100만원 안에 들어와요. 예비비 '+won(reserve)+'가 남아요.'};
+
+  var cuts=[];
+  if(over>0){
+    var list=[];
+    rows.forEach(function(r){if(r.cut&&r.cut.save>0)list.push(r.cut)});
+    list.sort(function(x,y){return y.save-x.save});
+    var acc=0;
+    for(var i=0;i<list.length&&acc<over;i++){cuts.push(list[i]);acc+=list[i].save}
+  }
+  var tips=[];
+  if(g>1)tips.push({t:'하객을 1명 줄이면 식대가 줄어요',v:'-'+won(per)});
+  var alt=null;
+  opts('meal',a).forEach(function(m){if(m.per<meal.per&&(!alt||m.per<alt.per))alt=m});
+  if(alt){var sv=Math.round((meal.per-alt.per)*fm(sub)*g);if(sv>=3)tips.push({t:'식사를 '+alt.label+'(으)로 바꾸면',v:'-'+won(sv)})}
+  if(reserve>0&&per>0){var extra=Math.floor(reserve/per);if(extra>=1)tips.push({t:'예비비를 쓰면 하객을 '+extra+'명 더 모실 수 있어요',v:'+'+extra+'명'})}
+
+  return {d:d,sub:sub,reg:reg,g:g,ven:ven,meal:meal,per:per,rows:rows,total:total,reserve:reserve,over:over,st:st,cuts:cuts,tips:tips,
+    wd:wd,today:today,days:days,gl:find('guests',a.guests,a).label};
+}
+
+function milestones(c){
+  return [
+   {m:3,lab:'3개월',t:'규모와 100만원 원칙을 양가에 먼저 공유하기',d:'하객 범위와 식사 방식, 직접 해결할 부분을 함께 정해요'},
+   {m:2.5,lab:'2개월 반',t:'장소 후보 확인하고 날짜 예약하기',d:c.d.peak?'봄·가을 주말은 인기 시설이 일찍 차요. 신청 시기를 먼저 확인하세요':'신청 일정과 이용 조건을 시설에 직접 확인해요'},
+   {m:2,lab:'2개월',t:'식사 견적 받고 업체나 식당 확정하기',d:'인원과 날짜가 정해졌다면 2~3곳 견적을 비교해요'},
+   {m:1.5,lab:'1개월 반',t:'의상, 메이크업, 촬영 담당 정하기',d:'대여할 것과 직접 해결할 것을 나눠요'},
+   {m:1,lab:'1개월',t:'모바일 청첩장 보내고 참석 여부 받기',d:'식대는 인원 기준이라 참석 확인이 중요해요'},
+   {m:0.8,lab:'3주',t:'안내요원 구하고 꽃·장식 준비하기',d:'안내 담당의 시간과 비용을 정하고, 꽃과 소품은 직접 준비할지 주문할지 정해요'},
+   {m:0.5,lab:'2주',t:'식사 인원 최종 전달, 식순과 진행자 정하기',d:'사회와 축가는 지인에게 부탁하면 비용이 들지 않아요'},
+   {m:0.15,lab:'1주',t:'최종 점검 (소품, 반입 음식, 우천 대안)',d:'당일 연락 담당과 짐 옮길 사람을 정해요'},
+   {m:0,lab:'예식 전후',t:'혼인신고하기 (구청)',d:'신고를 마쳐야 법적으로 부부가 돼요. 편한 날에 하세요'}
+  ].map(function(x,i){
+    var back=Math.round(x.m*30.44);
+    x.due=new Date(c.wd.getFullYear(),c.wd.getMonth(),c.wd.getDate()-back);
+    x.i=i;x.dd=Math.round((x.due-c.today)/864e5);
+    return x;
+  });
+}
+
+/* ---------- views ---------- */
+function viewIntro(){
+  return '<section class="intro">'+
+   '<div class="bubble b-down" style="--tail:30%"><p>100만원으로 결혼, 같이 계산해 봐요!</p></div>'+fishScene('idle')+
+   '<p class="eyebrow" style="margin-top:22px">100만원으로 결혼하기</p>'+
+   '<h1 class="q" tabindex="-1">여섯 가지만 고르면<br>100만원 결혼 계획이 나와요</h1>'+
+   '<p class="lead">신혼여행은 빼고, 식대는 포함해서 총 100만원. 시기, 지역, 하객 수, 장소, 식사를 고르면 항목별 금액과 줄이는 방법, 장소 찾는 법, 준비 일정을 정리해 드려요.</p>'+
+   '<div class="rules"><div><b>100만원</b><span>총예산 고정</span></div><div><b>식대 포함</b><span>하객 식사까지</span></div><div><b>신혼여행 제외</b><span>예산 밖</span></div></div>'+
+   '<ul class="feat">'+
+    '<li><b>예산 배분</b><span>장소, 식대, 장식, 안내요원, 의상, 촬영 등 항목별 금액과 초과 시 줄이는 순서</span></li>'+
+    '<li><b>장소 안내</b><span>공공예식장 같은 저비용 장소 유형과 찾는 방법</span></li>'+
+    '<li><b>준비 일정</b><span>예식일에서 거꾸로 계산한 할 일 목록</span></li>'+
+   '</ul>'+
+   '<div class="actions"><button class="btn" data-a="start">시작하기</button><button class="btn ghost" data-a="demo">예시 결과 먼저 보기</button></div>'+
+   '<p class="fine">약 1분 걸려요. 입력한 내용은 이 화면에서만 사용돼요.</p>'+
+  '</section>';
+}
+
+var QTEXT={
+ date:['언제 결혼하세요?','희망 시기를 골라주세요. 인기 시설은 예약이 일찍 차기도 해요.'],
+ region:['어느 지역에서 하세요?','장소를 찾을 지역을 골라주세요.'],
+ sub:['','세부 지역에 따라 식대와 물가가 조금 달라져요.'],
+ guests:['하객은 몇 명쯤 모실 건가요?','100만원 안에서는 인원이 늘수록 식대가 가장 크게 늘어요.'],
+ venue:['어디서 하실 건가요?','대관료를 아낄 수 있는 장소 유형이에요.'],
+ meal:['식사는 어떻게 하실 건가요?','식대는 인원 × 1인 비용으로 계산해요.']
+};
+function viewQuestion(){
+  var key=STEP_KEYS[state.step],list=opts(key),t=QTEXT[key].slice();
+  if(key==='sub'){var r=find('region',state.ans.region);t[0]=(r?r.label:'')+'에서 어디쯤인가요?'}
+  if(key==='meal')t[1]=state.ans.venue==='restaurant'?'식당 룸에서는 식당 메뉴로 진행해요. 식대는 인원 × 1인 비용으로 계산해요.':'외부 음식을 들일 수 있는지 장소에 꼭 확인하세요. 식대는 인원 × 1인 비용으로 계산해요.';
+  var prog='';for(var i=0;i<STEP_KEYS.length;i++)prog+='<i class="'+(i<=state.step?'on':'')+'"></i>';
+  var o=list.map(function(x){
+    var sel=String(state.ans[key])===String(x.v)?' sel':'';
+    return '<button class="opt'+sel+'" data-a="pick" data-v="'+x.v+'"><span class="ot"><b>'+x.label+'</b>'+(x.sub?'<small>'+x.sub+'</small>':'')+'</span><span class="chev" aria-hidden="true">›</span></button>';
+  }).join('');
+  return '<section>'+
+   '<div class="qtop"><button class="back" data-a="back">‹ 이전</button><span class="count">'+(state.step+1)+' / '+STEP_KEYS.length+'</span></div>'+
+   '<div class="prog" aria-hidden="true">'+prog+'</div>'+
+   '<div class="bubble b-down" style="--tail:'+(state.step%2===0?'30%':'53%')+'">'+
+    (state.step>0&&state.ack?'<p class="ack">\''+state.ack+'\' 메모했어요.</p>':'')+
+    '<h1 class="q" tabindex="-1">'+t[0]+'</h1></div>'+fishScene('idle')+'<p class="hint">'+t[1]+'</p>'+
+   '<div class="opts">'+o+'</div></section>';
+}
+
+function viewLoad(){
+  return '<section class="load"><div class="bubble b-down" style="--tail:53%" role="status"><p>잠깐만요, 100만원에 맞춰 계산하고 있어요.</p></div>'+fishScene('idle')+'</section>';
+}
+
+function panelBudget(c){
+  var used=Math.min(100,c.total/BUDGET*100);
+  var meter='<div class="use"><div class="pgrow"><span>사용</span><span><b>'+won(c.total)+'</b> / 100만원</span></div><div class="pgbar"><i class="'+(c.over>0?'over':'')+'" style="width:'+used+'%"></i></div></div>';
+  var rows='';
+  c.rows.forEach(function(r){
+    var pct=Math.round(r.amt/BUDGET*100);
+    rows+='<li><div class="rl"><span class="rn">'+r.name+(r.note?'<small>'+r.note+'</small>':'')+'</span><span class="ra">'+won(r.amt)+'</span></div><div class="bar'+(r.main?' main':'')+(r.amt<=0?' zero':'')+'"><i style="width:'+Math.min(100,pct)+'%"></i></div></li>';
+  });
+  rows+='<li><div class="rl"><span class="rn">예비비<small>남은 금액</small></span><span class="ra">'+won(Math.max(0,c.reserve))+'</span></div><div class="bar'+(c.reserve<=0?' zero':'')+'"><i style="width:'+Math.min(100,Math.max(0,c.reserve))+'%"></i></div></li>';
+  var cutHtml='';
+  if(c.cuts.length){
+    var saved=0;c.cuts.forEach(function(x){saved+=x.save});
+    cutHtml='<h2 class="sec">이렇게 줄이면 맞출 수 있어요</h2><ul class="tips">'+c.cuts.map(function(x){return '<li><span>'+x.label+'</span><b>-'+won(x.save)+'</b></li>'}).join('')+'</ul>'+
+     (saved<c.over?'<p class="fine">그래도 '+won(c.over-saved)+' 부족해요. 하객 수나 식사 방식을 함께 줄여야 해요.</p>':'<p class="fine">모두 적용하면 합계가 약 '+won(c.total-saved)+'가 돼요.</p>');
+  }
+  var tips=c.tips.length?'<h2 class="sec">식대 조절 방법</h2><ul class="tips">'+c.tips.map(function(x){return '<li><span>'+x.t+'</span><b>'+x.v+'</b></li>'}).join('')+'</ul>':'';
+  return '<div class="status '+(c.st.lv==='ok'?'':c.st.lv)+'"><span class="pill">'+c.st.label+'</span><p>'+c.st.msg+'</p></div>'+meter+
+   '<h2 class="sec">항목별 예상 금액</h2><ul class="rows">'+rows+'</ul>'+
+   '<div class="total"><span>예산</span><span>100만원</span></div>'+
+   '<p class="fine">대관료가 무료여도 장소 장식과 안내요원 비용은 따로 들어요. 신혼여행과 신혼집은 포함하지 않았어요.</p>'+cutHtml+tips;
+}
+
+function mapLink(c,v){
+  return 'https://map.naver.com/p/search/'+encodeURIComponent(c.sub.kw+' '+v.kw);
+}
+function consult(c){
+  if(c.ven.v!=='public')return '<p class="fine">장소를 공공예식장으로 고르면 상담 신청 초안을 만들어 드려요.</p>';
+  var seoul=c.reg.v==='seoul';
+  var when=c.d.tbd?'미정 (가을 중 협의 희망)':c.d.label+', 후보 날짜 '+fmtFull(c.wd)+' (조정 가능)';
+  var qs=['희망 날짜와 시간대에 예약이 가능한지, 어렵다면 대기나 다른 날짜 안내','대관료와 이용 시간 (준비와 철수 시간 포함)','비품과 장식 지원 여부와 조건','외부 음식(도시락, 케이터링) 반입 가능 여부','하객 수용 인원 상한과 좌석 배치','시설에서 도와주는 안내 인력이 있는지','우천 등 날씨 대안 (야외 시설이라면)','전담 업체 상담에서 의무로 이용해야 하는 항목과 추가 비용'];
+  var lines=['[공공예식장 상담 신청 내용 초안]','','희망 예식 시기: '+when,'하객 수: '+c.gl,'희망 지역: '+c.reg.label+' '+c.sub.label,'식사 계획: '+c.meal.label+' (외부 음식 반입이 필요하면 가능 여부 문의)','예산: 총 100만원(식대 포함) 규모의 소규모 예식',seoul?'신청 자격: 예비부부 중 1명 이상 서울 생활권자 (거주 / 근무 / 학업 중 해당 항목: ____)':'신청 자격: 해당 지자체 요건 확인 필요','이름과 연락처: (직접 입력)','','[상담 때 물어볼 것]'];
+  qs.forEach(function(q,i){lines.push((i+1)+'. '+q)});
+  var flow=seoul?'서울은 사전 상담, 전담 업체 종합 상담, 계약 순서로 진행돼요. 전화 상담 번호는 1899-2154였어요. 2023~2024년 보도 기준이라 지금도 같은지 확인하세요.':'서울 외 지역은 신청 방식이 지자체마다 달라요. 아래 검색으로 해당 시·군·구청 안내를 찾아보세요.';
+  var link=seoul?'<a href="https://mediahub.seoul.go.kr/archives/2011630" target="_blank" rel="noopener">서울시 예약 안내 보도 ↗</a>':'<a href="https://search.naver.com/search.naver?query='+encodeURIComponent(c.sub.kw+' 공공예식장 신청')+'" target="_blank" rel="noopener">'+c.sub.kw+' 공공예식장 신청 검색 ↗</a>';
+  return '<h2 class="sec">공공예식장 상담 신청 초안</h2><div class="say sm">'+fishScene('idle','sm')+'<div class="bubble b-left"><p>고른 내용으로 상담 신청 문구를 만들었어요. 이름과 연락처는 직접 입력하세요.</p></div></div><div class="notice"><textarea class="draft" id="consult" readonly>'+lines.join('\n')+'</textarea><button class="btn sm" data-a="copy">초안 복사하기</button><p class="fine" id="copymsg" style="margin:0"></p><p class="src">'+flow+' '+link+'</p></div>';
+}
+function panelVenue(c){
+  var sel=c.ven,others=VENUES.filter(function(v){return v.v!==sel.v});
+  function card(v,i){
+    return '<article class="vcard"><span class="vtag'+(i===0?' pick':'')+'">'+(i===0?'고른 장소':'이런 곳도 있어요')+'</span>'+
+     '<h3>'+v.label+'</h3><p class="vdesc">'+v.desc+'</p>'+
+     '<div class="vcost">'+v.rentNote+'</div>'+
+     '<dl class="vmeta"><div><dt>좋은 점</dt><dd>'+v.pro+'</dd></div><div><dt>확인할 점</dt><dd>'+v.chk+'</dd></div></dl>'+
+     '<a class="btn ghost sm" href="'+mapLink(c,v)+'" target="_blank" rel="noopener">지도에서 '+c.sub.kw+' '+v.kw+' 찾기 ↗</a></article>';
+  }
+  var cards=card(sel,0)+others.map(function(v){return card(v,1)}).join('');
+  var seoul=c.reg.v==='seoul'?'서울시는 공공시설을 예식장으로 개방하고 있고, 2025년 기준 61곳까지 늘었다고 보도됐어요.':'공공예식장 지원은 지자체마다 달라요. 해당 시·군·구청 누리집이나 지도 검색으로 확인하세요.';
+  var pub='<div class="notice"><b>공공예식장 알아두기</b>'+
+   '<p>'+seoul+' 대관료는 무료이거나 30만~180만원 범위라고 해요.</p>'+
+   '<p>신규 지정된 서울의 한 시설은 비품비를 최대 100만원까지 지원한다는 보도도 있었어요. 대상과 조건은 시설마다 다르니 직접 확인하세요.</p>'+
+   '<p>같은 보도의 공공예식장 이용 사례는 스드메 포함 총비용이 1천만원 안팎이었어요. 100만원은 이보다 훨씬 작은 규모라, 하객을 줄이고 의상과 촬영을 직접 해결하는 방식이 전제예요.</p>'+
+   '<p class="src">출처: <a href="https://www.segye.com/newsView/20251204515189" target="_blank" rel="noopener">세계일보 공공예식장 이용 증가 기사</a> · <a href="https://www.heraldk.com/article/2026050513581858104" target="_blank" rel="noopener">헤럴드경제 서울시 공공예식장 신규 지정 기사</a></p></div>';
+  var chk=[
+   ['이용료와 지원','대관료가 무료인지, 비품비 지원이 있는지'],
+   ['하루 이용 시간','준비와 철수 시간을 포함해 몇 시간 쓸 수 있는지'],
+   ['하객 수 상한','수용 인원과 좌석, 식사 공간'],
+   ['외부 음식 반입','도시락이나 케이터링을 들일 수 있는지'],
+   ['장식 규정','꽃과 소품을 직접 가져와 설치해도 되는지, 설치와 철수 시간'],
+   ['안내 인력','시설 직원이 안내를 도와주는지, 직접 구해야 하는지'],
+   ['우천과 날씨 대안','야외라면 실내 대체 공간이 있는지'],
+   ['주차와 교통','주차 가능 대수, 대중교통 접근성']
+  ].map(function(x){return '<li>'+x[0]+'<span>'+x[1]+'</span></li>'}).join('');
+  return '<p class="hint" style="margin:0">'+c.reg.label+' '+c.sub.label+', 하객 '+c.gl+' 기준이에요. 식사는 '+c.meal.label+'(으)로 계산했어요.</p>'+
+   cards+pub+consult(c)+
+   '<h2 class="sec">장소 확인 체크리스트</h2><details><summary>시설에 꼭 물어볼 것 8가지</summary><ul>'+chk+'</ul></details>'+
+   '<p class="fine">이 프로토타입은 장소 유형을 안내하고 지도 검색으로 연결해요. 시설별 실시간 예약 정보는 데이터 연동 후 제공할 수 있어요.</p>';
+}
+
+function panelPlan(c){
+  var ms=milestones(c);
+  var urgent=ms.filter(function(x){return x.m>0&&x.dd<=14}).sort(function(a,b){return b.m-a.m});
+  var later=ms.filter(function(x){return !(x.m>0&&x.dd<=14)}).sort(function(a,b){return a.due-b.due||b.m-a.m});
+  function item(x){
+    var now=x.m>0&&x.dd<=0,cls='task'+(now?' now':'')+(state.checks[x.i]?' done':'');
+    var when=x.m===0?'예식일 전후':(now?'지금 바로 시작':(fmtShort(x.due)+'까지'+(x.dd<=14?' ('+x.dd+'일 뒤)':' · 예식 '+x.lab+' 전')));
+    return '<li><label class="'+cls+'"><input type="checkbox" data-i="'+x.i+'"'+(state.checks[x.i]?' checked':'')+'><span><span class="t">'+x.t+'</span><br><span class="d">'+x.d+'</span><br><span class="w">'+when+'</span></span></label></li>';
+  }
+  var done=ms.filter(function(x){return state.checks[x.i]}).length;
+  var alert=urgent.length>=4?'<p class="alert">예식까지 시간이 짧아서 앞 단계 '+urgent.length+'가지가 한꺼번에 몰려 있어요. 장소 예약을 가장 먼저 하세요.</p>':'';
+  return '<div class="pgrow"><span>준비 진행</span><span id="pgtext">'+done+' / '+ms.length+' 완료</span></div><div class="pgbar"><i id="pgbar" style="width:'+(done/ms.length*100)+'%"></i></div>'+alert+
+   (urgent.length?'<h2 class="sec">지금 챙길 일</h2><ul>'+urgent.map(item).join('')+'</ul>':'')+
+   (later.length?'<h2 class="sec">앞으로 할 일</h2><ul>'+later.map(item).join('')+'</ul>':'');
+}
+
+/* 예산이 넉넉할수록 낚시가 잘 된다: 여유(잡았다) / 맞출 수 있음(입질) / 빠듯(아직 안 물어요) / 초과(놓쳤다) */
+function verdictScene(c){
+  var f,say,tail;
+  if(c.over>0){f='miss';tail='30%';say='앗, 놓쳤어요! 합계가 '+won(c.total)+'이라 '+won(c.over)+' 넘었어요. 같이 줄여 봐요!'}
+  else if(c.reserve<5){f='wait';tail='30%';say='아직 안 물어요. 예비비가 '+won(c.reserve)+'뿐이라 빠듯해요.'}
+  else if(c.reserve<15){f='bite';tail='55%';say='입질이 왔어요! 합계 '+won(c.total)+'이면 100만원 안에 들어와요.'}
+  else{f='catch';tail='55%';say='잡았다! 합계 '+won(c.total)+'이면 돼요. 예비비 '+won(c.reserve)+'이 남아요.'}
+  return '<div class="hsay"><div class="bubble b-down" style="--tail:'+tail+'"><p>'+say+'</p></div></div>'+fishScene(f);
+}
+function viewResult(){
+  var c=calc(state.ans);
+  var months=c.days<30?'1개월 미만':'약 '+Math.round(c.days/30.44)+'개월';
+  var tabs=[['budget','예산'],['venue','장소'],['plan','일정']].map(function(t){
+    return '<button role="tab" data-a="tab" data-tab="'+t[0]+'" aria-selected="'+(state.tab===t[0])+'">'+t[1]+'</button>';
+  }).join('');
+  function pn(id,html){return '<div class="panel" role="tabpanel" data-panel="'+id+'"'+(state.tab===id?'':' hidden')+'>'+html+'</div>'}
+  return '<section>'+
+   '<div class="hero">'+verdictScene(c)+'<div class="hdata"><p class="h-eyebrow">예식까지</p>'+
+   '<p class="h-days"><span class="num">'+c.days+'</span><span class="unit">일</span><span class="sub">'+months+'</span></p>'+
+   '<p class="h-date">'+fmtFull(c.wd)+' 기준'+(c.d.tbd?' (임시 날짜)':'')+'</p>'+
+   '<dl class="h-grid"><div><dt>총 예산</dt><dd>100만원 (식대 포함)</dd></div><div><dt>하객</dt><dd>'+c.gl+'</dd></div>'+
+   '<div><dt>지역</dt><dd>'+c.reg.label+' '+c.sub.label+'</dd></div><div><dt>장소 · 식사</dt><dd>'+c.ven.label+' · '+c.meal.label+'</dd></div></dl></div></div>'+
+   '<div class="tabs" role="tablist">'+tabs+'</div>'+
+   pn('budget',panelBudget(c))+pn('venue',panelVenue(c))+pn('plan',panelPlan(c))+
+   '<p class="fine">금액은 프로토타입용 예시 단가로 계산한 추정치예요. 실제 비용과 다를 수 있어요.</p>'+
+   '<div class="foot"><button class="btn" data-a="edit">조건 바꾸기</button><button class="btn ghost" data-a="reset">처음부터 다시</button></div>'+
+  '</section>';
+}
+
+function render(){
+  var html=state.view==='intro'?viewIntro():state.view==='q'?viewQuestion():state.view==='load'?viewLoad():viewResult();
+  screen.className='screen';
+  screen.innerHTML=html;
+  void screen.offsetWidth;
+  window.scrollTo(0,0);
+  var h=screen.querySelector('[tabindex="-1"]');
+  if(h)h.focus({preventScroll:true});
+}
+
+function finish(){
+  state.view='load';state.tab='budget';state.checks={};render();
+  setTimeout(function(){state.view='result';state.lock=false;render()},800);
+}
+function setTab(t){
+  state.tab=t;
+  var bs=screen.querySelectorAll('.tabs button'),ps=screen.querySelectorAll('.panel');
+  for(var i=0;i<bs.length;i++)bs[i].setAttribute('aria-selected',bs[i].getAttribute('data-tab')===t?'true':'false');
+  for(var j=0;j<ps.length;j++)ps[j].hidden=ps[j].getAttribute('data-panel')!==t;
+  var tb=screen.querySelector('.tabs');
+  if(tb){var top=tb.getBoundingClientRect().top;if(top<0)window.scrollBy(0,top-8)}
+}
+
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-a]');
+  if(!t)return;
+  var a=t.getAttribute('data-a');
+  if(a==='start'){state.view='q';state.step=0;state.ack='';render()}
+  else if(a==='demo'){state.ans=JSON.parse(JSON.stringify(DEMO));finish()}
+  else if(a==='back'){state.ack='';if(state.step===0){state.view='intro'}else{state.step--}render()}
+  else if(a==='pick'){
+    if(state.lock)return;
+    state.lock=true;
+    var key=STEP_KEYS[state.step],v=t.getAttribute('data-v');
+    if(key==='region'&&String(state.ans.region)!==v)delete state.ans.sub;
+    state.ans[key]=v;
+    var picked=find(key,v);state.ack=picked?picked.label:'';
+    if(key==='venue'&&state.ans.meal&&!find('meal',state.ans.meal))delete state.ans.meal;
+    var sibs=screen.querySelectorAll('.opt');
+    for(var i=0;i<sibs.length;i++)sibs[i].classList.remove('sel');
+    t.classList.add('sel');
+    setTimeout(function(){
+      if(state.step>=STEP_KEYS.length-1){finish()}
+      else{state.step++;state.lock=false;render()}
+    },220);
+  }
+  else if(a==='copy'){
+    var ta=document.getElementById('consult'),msg=document.getElementById('copymsg');
+    var fb=function(){if(ta){ta.focus();ta.select()}if(msg)msg.textContent='선택했어요. 길게 눌러 복사하세요.'};
+    try{navigator.clipboard.writeText(ta.value).then(function(){if(msg)msg.textContent='복사했어요.'},fb)}catch(err){fb()}
+  }
+  else if(a==='tab')setTab(t.getAttribute('data-tab'));
+  else if(a==='edit'){state.view='q';state.step=0;state.lock=false;state.ack='';render()}
+  else if(a==='reset'){state.ans={};state.view='intro';state.step=0;state.lock=false;state.ack='';render()}
+});
+document.addEventListener('change',function(e){
+  var el=e.target;
+  if(!el.matches||!el.matches('.task input'))return;
+  state.checks[el.getAttribute('data-i')]=el.checked;
+  var row=el.closest('.task');
+  if(row)row.classList.toggle('done',el.checked);
+  var all=screen.querySelectorAll('.task input'),n=0;
+  for(var i=0;i<all.length;i++)if(all[i].checked)n++;
+  var tx=document.getElementById('pgtext'),bar=document.getElementById('pgbar');
+  if(tx)tx.textContent=n+' / '+all.length+' 완료';
+  if(bar)bar.style.width=(n/all.length*100)+'%';
+});
+
+render();
+})();
+</script>
