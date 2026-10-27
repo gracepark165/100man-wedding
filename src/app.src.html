@@ -531,6 +531,22 @@ function panelBudget(c){
 function mapLink(c,v){
   return 'https://map.naver.com/p/search/'+encodeURIComponent(c.sub.kw+' '+v.kw);
 }
+function pubLinks(c){
+  var r=c.reg.v,s=c.sub.v,L=[];
+  if(r==='seoul'){
+    L.push(['서울마이웨딩(더 아름다운 결혼식)','https://wedding.seoulwomen.or.kr'],['서울시 공공예식장 신청 안내','https://news.seoul.go.kr/welfare/archives/552332'],['서울시 공공서비스예약','https://yeyak.seoul.go.kr/']);
+  }else if(r==='gg'){
+    L.push(['경기공유서비스(공공웨딩홀)','https://share.gg.go.kr']);
+    if(s==='ic')L.push(['인천시 온라인통합예약(대관/대여)','https://www.incheon.go.kr/res/RE020101']);
+  }else if(r==='bs'&&(s==='hd'||s==='sm')){
+    L.push(['부산시 공공예식장','https://www.busan.go.kr/depart/pubwedding'],['부산시 작은 결혼식 지원사업','https://busan.go.kr/depart/family07']);
+  }
+  if(r!=='seoul')L.push(['공유누리(전국 공공시설 예약 포털)','https://www.eshare.go.kr']);
+  return L;
+}
+function linkList(L){
+  return L.map(function(x){return '<a href="'+x[1]+'" target="_blank" rel="noopener">'+x[0]+' ↗</a>'}).join(' · ');
+}
 function consult(c){
   if(c.ven.v!=='public')return '<p class="fine">장소를 공공예식장으로 고르면 상담 신청 초안을 만들어 드려요.</p>';
   var seoul=c.reg.v==='seoul';
@@ -538,8 +554,8 @@ function consult(c){
   var qs=['희망 날짜와 시간대에 예약이 가능한지, 어렵다면 대기나 다른 날짜 안내','대관료와 이용 시간 (준비와 철수 시간 포함)','비품과 장식 지원 여부와 조건','외부 음식(도시락, 케이터링) 반입 가능 여부','하객 수용 인원 상한과 좌석 배치','시설에서 도와주는 안내 인력이 있는지','우천 등 날씨 대안 (야외 시설이라면)','전담 업체 상담에서 의무로 이용해야 하는 항목과 추가 비용'];
   var lines=['[공공예식장 상담 신청 내용 초안]','','희망 예식 시기: '+when,'하객 수: '+c.gl,'희망 지역: '+c.reg.label+' '+c.sub.label,'식사 계획: '+c.meal.label+' (외부 음식 반입이 필요하면 가능 여부 문의)','예산: 총 100만원(식대 포함) 규모의 소규모 예식',seoul?'신청 자격: 예비부부 중 1명 이상 서울 생활권자 (거주 / 근무 / 학업 중 해당 항목: ____)':'신청 자격: 해당 지자체 요건 확인 필요','이름과 연락처: (직접 입력)','','[상담 때 물어볼 것]'];
   qs.forEach(function(q,i){lines.push((i+1)+'. '+q)});
-  var flow=seoul?'서울은 사전 상담, 전담 업체 종합 상담, 계약 순서로 진행돼요. 전화 상담 번호는 1899-2154였어요. 2023~2024년 보도 기준이라 지금도 같은지 확인하세요.':'서울 외 지역은 신청 방식이 지자체마다 달라요. 아래 검색으로 해당 시·군·구청 안내를 찾아보세요.';
-  var link=seoul?'<a href="https://mediahub.seoul.go.kr/archives/2011630" target="_blank" rel="noopener">서울시 예약 안내 보도 ↗</a>':'<a href="https://search.naver.com/search.naver?query='+encodeURIComponent(c.sub.kw+' 공공예식장 신청')+'" target="_blank" rel="noopener">'+c.sub.kw+' 공공예식장 신청 검색 ↗</a>';
+  var flow=seoul?'서울은 사전 상담, 전담 업체 종합 상담, 계약 순서로 진행돼요. 전화 상담 번호는 1899-2154였어요. 2023~2024년 보도 기준이라 지금도 같은지 확인하세요.':'서울 외 지역은 신청 방식이 지자체마다 달라요. 아래 링크와 검색으로 해당 시·군·구청 안내를 확인하세요.';
+  var link=linkList(pubLinks(c))+(seoul?'':' · <a href="https://search.naver.com/search.naver?query='+encodeURIComponent(c.sub.kw+' 공공예식장 신청')+'" target="_blank" rel="noopener">'+c.sub.kw+' 공공예식장 신청 검색 ↗</a>');
   return '<h2 class="sec">공공예식장 상담 신청 초안</h2><div class="say sm">'+fishScene('idle','sm')+'<div class="bubble b-left"><p>고른 내용으로 상담 신청 문구를 만들었어요. 이름과 연락처는 직접 입력하세요.</p></div></div><div class="notice"><textarea class="draft" id="consult" readonly>'+lines.join('\n')+'</textarea><button class="btn sm" data-a="copy">초안 복사하기</button><p class="fine" id="copymsg" style="margin:0"></p><p class="src">'+flow+' '+link+'</p></div>';
 }
 function panelVenue(c){
@@ -557,6 +573,8 @@ function panelVenue(c){
    '<p>'+seoul+' 대관료는 무료이거나 30만~180만원 범위라고 해요.</p>'+
    '<p>신규 지정된 서울의 한 시설은 비품비를 최대 100만원까지 지원한다는 보도도 있었어요. 대상과 조건은 시설마다 다르니 직접 확인하세요.</p>'+
    '<p>같은 보도의 공공예식장 이용 사례는 스드메 포함 총비용이 1천만원 안팎이었어요. 100만원은 이보다 훨씬 작은 규모라, 하객을 줄이고 의상과 촬영을 직접 해결하는 방식이 전제예요.</p>'+
+   '<p><b>신청·예약 바로가기</b></p><p>'+linkList(pubLinks(c))+'</p>'+
+   '<p class="fine" style="margin:0">신청 자격과 일정은 해마다 바뀌니 공식 페이지에서 최신 공고를 확인하세요.</p>'+
    '<p class="src">출처: <a href="https://www.segye.com/newsView/20251204515189" target="_blank" rel="noopener">세계일보 공공예식장 이용 증가 기사</a> · <a href="https://www.heraldk.com/article/2026050513581858104" target="_blank" rel="noopener">헤럴드경제 서울시 공공예식장 신규 지정 기사</a></p></div>';
   var chk=[
    ['이용료와 지원','대관료가 무료인지, 비품비 지원이 있는지'],
