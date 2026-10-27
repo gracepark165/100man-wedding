@@ -412,14 +412,17 @@ function calc(a){
    {name:'장소 사용',note:ven.label,amt:ven.rent},
    {name:'식대',note:g+'명 × 1인 '+man1(per),amt:mealTotal,main:true}
   ];
-  var decor={public:10,restaurant:5,outdoor:10,chapel:5}[ven.v];
-  var decorNote=(ven.v==='restaurant'||ven.v==='chapel')?'기본 장식이 있어 적게 잡았어요':'빈 공간이라 꽃과 소품이 필요해요';
+  var decor={public:165,restaurant:5,outdoor:10,chapel:5}[ven.v];
+  var decorNote=(ven.v==='restaurant'||ven.v==='chapel')?'기본 장식이 있어 적게 잡았어요':(ven.v==='public'?'빈 공간이라 꽃과 소품이 필요해요. 견적은 165만~250만원 수준이라 낮은 쪽으로 계산했어요':'빈 공간이라 꽃과 소품이 필요해요');
   rows.push({name:'장소 장식 (꽃·소품)',note:decorNote,amt:decor,cut:{label:'조화와 직접 만든 소품으로 꾸미기',save:Math.round(decor/2)}});
   var staffN=g<=10?1:(g<=30?2:3),staffAmt=staffN*5;
   rows.push({name:'안내요원 알바비',note:staffN+'명 × 5만원 (4시간 기준)',amt:staffAmt,cut:{label:'가족·지인에게 안내 부탁하기',save:staffAmt}});
   FIXED.forEach(function(f){rows.push({name:f.name,amt:f.amt,cut:f.cut})});
   rows.push({name:'혼인신고 (구청)',note:'수수료 없음',amt:0});
-  var total=0;rows.forEach(function(r){total+=r.amt});
+  var gross=0;rows.forEach(function(r){gross+=r.amt});
+  /* 서울시 '더 아름다운 결혼식' 비품비 지원: 서울 거주 예비부부가 서울시 지정 공공예식장에서 결혼할 때 최대 100만원 */
+  var support=(reg.v==='seoul'&&ven.v==='public')?Math.min(100,gross):0;
+  var total=gross-support;
   var reserve=BUDGET-total;
   var st,over=total-BUDGET;
   if(over>0)st={lv:'bad',label:'예산 초과',msg:'합계가 '+won(total)+'라 100만원보다 '+won(over)+' 많아요. 아래 방법으로 맞춰 보세요.'};
@@ -442,7 +445,7 @@ function calc(a){
   if(alt){var sv=Math.round((meal.per-alt.per)*fm(sub)*g);if(sv>=3)tips.push({t:'식사를 '+alt.label+'(으)로 바꾸면',v:'-'+won(sv)})}
   if(reserve>0&&per>0){var extra=Math.floor(reserve/per);if(extra>=1)tips.push({t:'예비비를 쓰면 하객을 '+extra+'명 더 모실 수 있어요',v:'+'+extra+'명'})}
 
-  return {d:d,sub:sub,reg:reg,g:g,ven:ven,meal:meal,per:per,rows:rows,total:total,reserve:reserve,over:over,st:st,cuts:cuts,tips:tips,
+  return {d:d,sub:sub,reg:reg,g:g,ven:ven,meal:meal,per:per,rows:rows,gross:gross,support:support,total:total,reserve:reserve,over:over,st:st,cuts:cuts,tips:tips,
     wd:wd,today:today,days:days,gl:find('guests',a.guests,a).label};
 }
 
@@ -521,6 +524,7 @@ function panelBudget(c){
     var pct=Math.round(r.amt/BUDGET*100);
     rows+='<li><div class="rl"><span class="rn">'+r.name+(r.note?'<small>'+r.note+'</small>':'')+'</span><span class="ra">'+won(r.amt)+'</span></div><div class="bar'+(r.main?' main':'')+(r.amt<=0?' zero':'')+'"><i style="width:'+Math.min(100,pct)+'%"></i></div></li>';
   });
+  if(c.support>0)rows+='<li><div class="rl"><span class="rn">서울시 비품비 지원<small>서울 거주 · 서울시 지정 공공예식장 · 최대 100만원 (신청 조건 충족 시)</small></span><span class="ra">-'+won(c.support)+'</span></div></li>';
   rows+='<li><div class="rl"><span class="rn">예비비<small>남은 금액</small></span><span class="ra">'+won(Math.max(0,c.reserve))+'</span></div><div class="bar'+(c.reserve<=0?' zero':'')+'"><i style="width:'+Math.min(100,Math.max(0,c.reserve))+'%"></i></div></li>';
   var cutHtml='';
   if(c.cuts.length){
@@ -532,7 +536,7 @@ function panelBudget(c){
   return '<div class="status '+(c.st.lv==='ok'?'':c.st.lv)+'"><span class="pill">'+c.st.label+'</span><p>'+c.st.msg+'</p></div>'+meter+
    '<h2 class="sec">항목별 예상 금액</h2><ul class="rows">'+rows+'</ul>'+
    '<div class="total"><span>예산</span><span>100만원</span></div>'+
-   '<p class="fine">대관료가 무료여도 장소 장식과 안내요원 비용은 따로 들어요. 신혼여행과 신혼집은 포함하지 않았어요.</p>'+cutHtml+tips;
+   '<p class="fine">대관료가 무료여도 장소 장식과 안내요원 비용은 따로 들어요. 신혼여행과 신혼집은 포함하지 않았어요.'+(c.support>0?' 비품비 지원은 신청 조건과 기간을 충족해야 받을 수 있어요. 지원 전 합계는 약 '+won(c.gross)+'예요.':'')+'</p>'+cutHtml+tips;
 }
 
 function mapLink(c,v){
@@ -541,7 +545,7 @@ function mapLink(c,v){
 function pubLinks(c){
   var r=c.reg.v,s=c.sub.v,L=[];
   if(r==='seoul'){
-    L.push(['서울마이웨딩(더 아름다운 결혼식)','https://wedding.seoulwomen.or.kr'],['서울시 공공예식장 신청 안내','https://news.seoul.go.kr/welfare/archives/552332'],['서울시 공공서비스예약','https://yeyak.seoul.go.kr/']);
+    L.push(['서울시 비품비 지원(최대 100만원)','https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=5131BE613817CADFE063A60221622406'],['서울마이웨딩(더 아름다운 결혼식)','https://wedding.seoulwomen.or.kr'],['서울시 공공예식장 신청 안내','https://news.seoul.go.kr/welfare/archives/552332'],['서울시 공공서비스예약','https://yeyak.seoul.go.kr/']);
   }else if(r==='gg'){
     L.push(['경기공유서비스(공공웨딩홀)','https://share.gg.go.kr']);
     if(s==='ic')L.push(['인천시 온라인통합예약(대관/대여)','https://www.incheon.go.kr/res/RE020101']);
@@ -578,7 +582,8 @@ function panelVenue(c){
   var seoul=c.reg.v==='seoul'?'서울시는 공공시설을 예식장으로 개방하고 있고, 2025년 기준 61곳까지 늘었다고 보도됐어요.':'공공예식장 지원은 지자체마다 달라요. 해당 시·군·구청 누리집이나 지도 검색으로 확인하세요.';
   var pub='<div class="notice"><b>공공예식장 알아두기</b>'+
    '<p>'+seoul+' 대관료는 무료이거나 30만~180만원 범위라고 해요.</p>'+
-   '<p>신규 지정된 서울의 한 시설은 비품비를 최대 100만원까지 지원한다는 보도도 있었어요. 대상과 조건은 시설마다 다르니 직접 확인하세요.</p>'+
+   '<p>서울 거주 예비부부가 서울시 지정 공공예식장에서 결혼하면 비품비를 최대 100만원까지 지원받을 수 있어요(「더 아름다운 결혼식」 비품비 지원). 협약 카드에 바우처로 지급돼 협약업체의 결혼식 비용 결제에 쓰고, 예식일 1주일 전까지 탄생육아 몽땅정보통에서 온라인으로 신청해요. 신한 국민행복카드 발급이 필요해요. 2026년 신청 기간은 5월 28일~11월 28일이라, 이후 일정은 공고에서 확인하세요.</p>'+
+   '<p>공공예식장은 빈 공간이라 꽃과 소품 장식 견적이 165만~250만원 수준이에요. 지원금을 받아도 장식비가 예산에서 큰 비중을 차지해요.</p>'+
    '<p>같은 보도의 공공예식장 이용 사례는 스드메 포함 총비용이 1천만원 안팎이었어요. 100만원은 이보다 훨씬 작은 규모라, 하객을 줄이고 의상과 촬영을 직접 해결하는 방식이 전제예요.</p>'+
    '<p><b>신청·예약 바로가기</b></p><p>'+linkList(pubLinks(c))+'</p>'+
    '<p class="fine" style="margin:0">신청 자격과 일정은 해마다 바뀌니 공식 페이지에서 최신 공고를 확인하세요.</p>'+
