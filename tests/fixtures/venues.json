@@ -1,0 +1,5 @@
+[
+  {"id":"gs-a","name":"테스트 정원","gu":"영등포구","area":"gs","cap":[10,40],"fee":"무료","food":"외부 반입 가능","open":"예식 6개월 전","url":"https://example.com/a","checked":"2026-11-01"},
+  {"id":"mp-b","name":"테스트 홀","gu":"마포구","area":"mp","cap":[30,100],"fee":"30만원","food":"지정업체","open":"예식 3개월 전","url":"https://example.com/b","checked":"2026-10-20"},
+  {"id":"gb-c","name":"확인 전 시설","gu":"노원구","area":"gb","cap":[10,50],"fee":"무료","food":"외부 반입 가능","open":"상시","url":"https://example.com/c","checked":""}
+]

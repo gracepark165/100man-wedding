@@ -1,0 +1,152 @@
+[
+ {
+  "id": "hannam-garden",
+  "name": "남산 한남 웨딩가든",
+  "gu": "용산구",
+  "area": "mp",
+  "cap": [
+   80,
+   150
+  ],
+  "fee": "무료",
+  "food": "확인 필요",
+  "open": "확인 필요",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/3191",
+  "checked": ""
+ },
+ {
+  "id": "seogyo-square",
+  "name": "서교생활문화센터 서교스퀘어",
+  "gu": "마포구",
+  "area": "mp",
+  "cap": [
+   80,
+   160
+  ],
+  "fee": "무료",
+  "food": "피로연 불가",
+  "open": "확인 필요",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/3210",
+  "checked": ""
+ },
+ {
+  "id": "oil-tank",
+  "name": "문화비축기지",
+  "gu": "마포구",
+  "area": "mp",
+  "cap": [
+   100,
+   200
+  ],
+  "fee": "무료",
+  "food": "도시락",
+  "open": "2026년은 자체 행사로 예약 불가",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/588",
+  "checked": ""
+ },
+ {
+  "id": "hrd-hall",
+  "name": "서울시 인재개발원 인재홀",
+  "gu": "서초구",
+  "area": "gn",
+  "cap": [
+   100,
+   200
+  ],
+  "fee": "무료",
+  "food": "확인 필요",
+  "open": "확인 필요",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/487",
+  "checked": ""
+ },
+ {
+  "id": "maeheon-forest",
+  "name": "매헌시민의숲",
+  "gu": "서초구",
+  "area": "gn",
+  "cap": [
+   80,
+   150
+  ],
+  "fee": "무료",
+  "food": "확인 필요",
+  "open": "확인 필요",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/637",
+  "checked": ""
+ },
+ {
+  "id": "snue-plaza",
+  "name": "서울교육대학교 사향광장",
+  "gu": "서초구",
+  "area": "gn",
+  "cap": [
+   100,
+   200
+  ],
+  "fee": "시간당 133,270원",
+  "food": "확인 필요",
+  "open": "2026.3~2027.12 공사 진행",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/3225",
+  "checked": ""
+ },
+ {
+  "id": "seoul-forest",
+  "name": "서울숲 포플러정원",
+  "gu": "성동구",
+  "area": "",
+  "cap": [
+   80,
+   150
+  ],
+  "fee": "무료",
+  "food": "확인 필요",
+  "open": "확인 필요",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/6411",
+  "checked": ""
+ },
+ {
+  "id": "childrens-park",
+  "name": "어린이대공원 포시즌가든",
+  "gu": "광진구",
+  "area": "",
+  "cap": [
+   80,
+   150
+  ],
+  "fee": "무료",
+  "food": "확인 필요",
+  "open": "확인 필요",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/3200",
+  "checked": ""
+ },
+ {
+  "id": "gwangjin-hall",
+  "name": "광진구청 대강당홀",
+  "gu": "광진구",
+  "area": "",
+  "cap": [
+   100,
+   200
+  ],
+  "fee": "무료",
+  "food": "케이터링 가능",
+  "open": "확인 필요",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/3218",
+  "checked": ""
+ },
+ {
+  "id": "uos-jajak",
+  "name": "서울시립대 자작마루",
+  "gu": "동대문구",
+  "area": "",
+  "cap": [
+   100,
+   200
+  ],
+  "fee": "무료",
+  "food": "확인 필요",
+  "open": "학사일정에 따라 대관일 결정",
+  "url": "https://wedding.seoulwomen.or.kr/facilities/486",
+  "checked": ""
+ }
+]
