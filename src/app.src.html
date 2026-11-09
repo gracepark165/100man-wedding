@@ -191,6 +191,7 @@ ul{padding:0;list-style:none}
 .tips li b{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--accent-text)}
 
 .vcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}
+.apply .btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
 .pv-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:10px;display:grid;gap:4px}
 .pv-card h3{margin:0;font-size:16px}
 .pv-card .pv-gu{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
@@ -338,7 +339,7 @@ var RES=[
  {v:'n',label:'아니요'},
  {v:'u',label:'잘 모르겠어요',sub:'지원 조건을 알려드릴게요'}
 ];
-var DEMO={date:'q1',region:'seoul',sub:'gs',guests:'20',venue:'public',meal:'box'};
+var DEMO={date:'q1',region:'seoul',sub:'gs',res:'y',guests:'20',venue:'public',meal:'box'};
 var WD=['일','월','화','수','목','금','토'];
 
 var state={view:'intro',step:0,ans:{},tab:'budget',checks:{},lock:false,ack:'',edit:false};
@@ -683,7 +684,7 @@ function buildIcs(items){
   var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//100man-wedding//KO','CALSCALE:GREGORIAN'];
   items.forEach(function(x,i){
     var end=new Date(x.due.getFullYear(),x.due.getMonth(),x.due.getDate()+1);
-    L.push('BEGIN:VEVENT','UID:'+i+'-'+icsDate(x.due)+'@100man-wedding','DTSTAMP:'+stamp,
+    L.push('BEGIN:VEVENT','UID:'+(x.i!=null?x.i:i)+'-'+icsDate(x.due)+'@100man-wedding','DTSTAMP:'+stamp,
      'DTSTART;VALUE=DATE:'+icsDate(x.due),'DTEND;VALUE=DATE:'+icsDate(end),'SUMMARY:'+icsText(x.t),'DESCRIPTION:'+icsText(x.d),'END:VEVENT');
   });
   L.push('END:VCALENDAR');
@@ -733,7 +734,7 @@ function summaryText(c){
   t.push('하객: '+c.gl,'장소: '+c.ven.label,'식사: '+c.meal.label);
   return t.join(' / ');
 }
-function applyUrl(c){return CONFIG.formUrl+'?usp=pp_url&'+CONFIG.formSummaryEntry+'='+encodeURIComponent(summaryText(c))}
+function applyUrl(c){return CONFIG.formUrl.split('?')[0]+'?usp=pp_url&'+CONFIG.formSummaryEntry+'='+encodeURIComponent(summaryText(c))}
 function applyCard(c){
   if(!CONFIG.formUrl||!CONFIG.formSummaryEntry)return '';
   return '<div class="notice apply"><b>공공예식장 신청부터 예식까지, 카카오톡으로 같이 준비해 드려요 (무료 시범 운영)</b>'+
@@ -774,7 +775,7 @@ function encodeAns(a){
 }
 function decodeAns(qs){
   var q={};
-  String(qs||'').replace(/^\?/,'').split('&').forEach(function(p){var i=p.indexOf('=');if(i>0)q[p.slice(0,i)]=decodeURIComponent(p.slice(i+1))});
+  String(qs||'').replace(/^\?/,'').split('&').forEach(function(p){var i=p.indexOf('=');if(i>0){try{q[p.slice(0,i)]=decodeURIComponent(p.slice(i+1))}catch(err){/* 깨진 % 값은 건너뛴다 */}}});
   var ans={},ok=true;
   /* steps()는 지역에 따라 달라지므로 한 단계씩 읽으며 다시 계산한다 */
   for(var n=0;n<steps(ans).length;n++){
@@ -815,6 +816,7 @@ window.addEventListener('popstate',function(e){
   var fm0=firstMissing();
   if(state.view==='result'&&fm0>=0){state.view='q';state.step=fm0}
   if(state.view==='q'&&fm0>=0&&state.step>fm0)state.step=fm0;
+  if(state.view==='result')state.checks=loadChecks(state.ans);
   render(true);
 });
 function render(fromHist){
