@@ -14,6 +14,15 @@ for v in venues:
         assert k in v, f"{v.get('id', '?')}: '{k}' 필드가 없습니다"
 assert '__PUBLIC_VENUES__' in s
 s = s.replace('__PUBLIC_VENUES__', json.dumps(venues, ensure_ascii=False).replace('</', '<\\/'))
+# 운영 설정: CONFIG_JSON(테스트용) 또는 src/config.json
+cfg = json.loads(os.environ.get('CONFIG_JSON') or (here / 'config.json').read_text(encoding='utf-8'))
+for k in ('formUrl', 'formSummaryEntry', 'goatcounter'):
+    assert isinstance(cfg.get(k, ''), str), f"config.json '{k}'는 문자열이어야 합니다"
+    cfg[k] = cfg.get(k, '')
+assert '__CONFIG__' in s
+s = s.replace('__CONFIG__', json.dumps(cfg, ensure_ascii=False).replace('</', '<\\/'))
+gc = cfg['goatcounter']
+assert gc == '' or gc.replace('-', '').isalnum(), 'goatcounter 코드는 영문·숫자만 됩니다'
 cut = s.index('</style>') + len('</style>')
 head, body = s[:cut], s[cut:]
 doc = (
@@ -21,7 +30,9 @@ doc = (
     '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
     '<style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}'
     'body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>\n'
-    + head + '\n</head>\n<body>\n' + body.strip() + '\n</body>\n</html>\n'
+    + head + '\n</head>\n<body>\n' + body.strip()
+    + (f'\n<script data-goatcounter="https://{gc}.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>' if gc else '')
+    + '\n</body>\n</html>\n'
 )
 out = pathlib.Path(os.environ.get('OUT') or (here.parent / 'index.html'))  # 테스트는 OUT으로 임시 파일에 빌드한다
 out.write_text(doc, encoding='utf-8')

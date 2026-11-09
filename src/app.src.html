@@ -237,6 +237,8 @@ details li span{display:block;color:var(--muted);font-size:13px}
 (function(){
 'use strict';
 
+/* 운영 설정 (src/config.json): 구글폼 주소, 미리 채우기 항목 번호, GoatCounter 코드. 비어 있으면 해당 기능을 숨긴다 */
+var CONFIG=__CONFIG__;
 var BUDGET=100; /* 만원 */
 
 var DATES=[
@@ -725,6 +727,21 @@ function verdictScene(c){
 function chg(k,label,val){
   return '<div><button class="chg" data-a="jump" data-k="'+k+'" aria-label="'+label+' 바꾸기: 지금 '+val+'"><span class="k">'+label+'</span><span class="v">'+val+'</span><span class="e" aria-hidden="true">바꾸기 ›</span></button></div>';
 }
+function summaryText(c){
+  var t=['시기: '+c.d.label,'지역: '+c.reg.label+' '+c.sub.label];
+  if(c.res)t.push('거주지: '+c.res.label);
+  t.push('하객: '+c.gl,'장소: '+c.ven.label,'식사: '+c.meal.label);
+  return t.join(' / ');
+}
+function applyUrl(c){return CONFIG.formUrl+'?usp=pp_url&'+CONFIG.formSummaryEntry+'='+encodeURIComponent(summaryText(c))}
+function applyCard(c){
+  if(!CONFIG.formUrl||!CONFIG.formSummaryEntry)return '';
+  return '<div class="notice apply"><b>공공예식장 신청부터 예식까지, 카카오톡으로 같이 준비해 드려요 (무료 시범 운영)</b>'+
+   '<a class="btn" data-a="apply" href="'+esc(applyUrl(c))+'" target="_blank" rel="noopener">1:1 준비 도우미 신청하기</a>'+
+   '<p class="fine" style="margin:0">신청서에서 이름과 연락 방법을 받아요. 예식 후 3개월이 지나면 삭제해요.</p></div>';
+}
+/* 방문 통계: GoatCounter가 있을 때만 센다. 개인정보는 보내지 않는다 */
+function track(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,event:true})}catch(err){}}
 function viewResult(){
   var c=calc(state.ans);
   var months=c.days<30?'1개월 미만':'약 '+Math.round(c.days/30.44)+'개월';
@@ -741,6 +758,7 @@ function viewResult(){
    '<p class="h-tip">항목을 누르면 그것만 바꿀 수 있어요.</p></div></div>'+
    '<div class="tabs" role="tablist">'+tabs+'</div>'+
    pn('budget',panelBudget(c))+pn('venue',panelVenue(c))+pn('plan',panelPlan(c))+
+   applyCard(c)+
    '<p class="fine">금액은 프로토타입용 예시 단가로 계산한 추정치예요. 실제 비용과 다를 수 있어요.</p>'+
    '<div class="foot"><button class="btn" data-a="share">결과 공유하기</button><button class="btn ghost" data-a="edit">질문 처음부터 다시 보기</button><button class="btn ghost" data-a="reset">처음부터 다시</button></div><p class="fine" id="sharemsg" role="status"></p>'+
   '</section>';
@@ -816,7 +834,7 @@ function finish(keep){
   if(!keep)state.tab='budget';
   state.checks=loadChecks(state.ans);
   state.view='load';render();
-  loadTimer=setTimeout(function(){state.view='result';state.lock=false;render()},keep?350:800);
+  loadTimer=setTimeout(function(){state.view='result';state.lock=false;render();if(!keep)track('result')},keep?350:800);
 }
 function setTab(t){
   state.tab=t;
@@ -831,7 +849,7 @@ document.addEventListener('click',function(e){
   var t=e.target.closest('[data-a]');
   if(!t)return;
   var a=t.getAttribute('data-a');
-  if(a==='start'){state.view='q';state.step=0;state.ack='';render()}
+  if(a==='start'){track('start');state.view='q';state.step=0;state.ack='';render()}
   else if(a==='demo'){state.ans=JSON.parse(JSON.stringify(DEMO));finish()}
   else if(a==='back'){state.ack='';state.lock=false;if(state.step===0){state.view='intro';state.edit=false}else{state.step--}render()}
   else if(a==='goto'){state.ack='';state.lock=false;state.step=+t.getAttribute('data-i');render()}
@@ -860,7 +878,8 @@ document.addEventListener('click',function(e){
       else{state.step++;state.lock=false;render()}
     },220);
   }
-  else if(a==='share')shareLink();
+  else if(a==='share'){track('share');shareLink()}
+  else if(a==='apply')track('apply');
   else if(a==='ics')downloadIcs();
   else if(a==='copy'){
     var ta=document.getElementById('consult'),msg=document.getElementById('copymsg');
