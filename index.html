@@ -327,14 +327,24 @@ var FIXED=[
  {name:'반지',amt:8,cut:{label:'반지 생략 또는 기존 반지 사용',save:8}},
  {name:'청첩장·기타',amt:3,cut:{label:'모바일 청첩장만 보내기',save:2}}
 ];
-var STEP_KEYS=['date','region','sub','guests','venue','meal'];
+/* 질문 순서. 서울이면 세부 지역 다음에 거주지(res)를 묻는다 */
+function steps(a){
+  a=a||state.ans;
+  return a.region==='seoul'?['date','region','sub','res','guests','venue','meal']:['date','region','sub','guests','venue','meal'];
+}
+var RES=[
+ {v:'y',label:'네, 서울에 살아요'},
+ {v:'n',label:'아니요'},
+ {v:'u',label:'잘 모르겠어요',sub:'지원 조건을 알려드릴게요'}
+];
 var DEMO={date:'q1',region:'seoul',sub:'gs',guests:'20',venue:'public',meal:'box'};
 var WD=['일','월','화','수','목','금','토'];
 
 var state={view:'intro',step:0,ans:{},tab:'budget',checks:{},lock:false,ack:'',edit:false};
 /* 답이 비었거나 더 이상 맞지 않는 첫 질문 번호. 다 답했으면 -1 */
 function firstMissing(){
-  for(var i=0;i<STEP_KEYS.length;i++){var k=STEP_KEYS[i];if(state.ans[k]==null||!find(k,state.ans[k]))return i}
+  var K=steps();
+  for(var i=0;i<K.length;i++){var k=K[i];if(state.ans[k]==null||!find(k,state.ans[k]))return i}
   return -1;
 }
 
@@ -407,6 +417,7 @@ function opts(key,a){
   if(key==='date')return DATES;
   if(key==='region')return REGIONS;
   if(key==='sub'){var r=find('region',a.region,a);return r?r.subs:[]}
+  if(key==='res')return RES;
   if(key==='guests')return GUESTS;
   if(key==='venue')return VENUES;
   return a.venue==='restaurant'?MEALS_REST:MEALS_OTHER;
@@ -440,7 +451,10 @@ function calc(a){
   rows.push({name:'혼인신고 (구청)',note:'수수료 없음',amt:0});
   var gross=0;rows.forEach(function(r){gross+=r.amt});
   /* 서울시 '더 아름다운 결혼식' 비품비 지원: 서울 거주 예비부부가 서울시 지정 공공예식장에서 결혼할 때 최대 100만원 */
-  var support=(reg.v==='seoul'&&ven.v==='public')?Math.min(100,gross):0;
+  /* 거주지 y: 차감, u: '조건 충족 시'로만 보여주고 합계에는 넣지 않음, n: 대상 아님 */
+  var canSup=reg.v==='seoul'&&ven.v==='public';
+  var support=canSup&&a.res==='y'?Math.min(100,gross):0;
+  var supportMaybe=canSup&&a.res==='u'?Math.min(100,gross):0;
   var total=gross-support;
   var reserve=BUDGET-total;
   var st,over=total-BUDGET;
@@ -465,7 +479,7 @@ function calc(a){
   if(reserve>0&&per>0){var extra=Math.floor(reserve/per);if(extra>=1)tips.push({t:'예비비를 쓰면 하객을 '+extra+'명 더 모실 수 있어요',v:'+'+extra+'명'})}
 
   return {d:d,sub:sub,reg:reg,g:g,ven:ven,meal:meal,per:per,rows:rows,gross:gross,support:support,total:total,reserve:reserve,over:over,st:st,cuts:cuts,tips:tips,
-    wd:wd,today:today,days:days,gl:find('guests',a.guests,a).label};
+    wd:wd,today:today,days:days,gl:find('guests',a.guests,a).label,supportMaybe:supportMaybe,res:find('res',a.res,a)};
 }
 
 function milestones(c){
@@ -492,7 +506,7 @@ function viewIntro(){
   return '<section class="intro">'+
    '<div class="bubble b-down" style="--tail:30%"><p>100만원으로 결혼, 같이 계산해 봐요!</p></div>'+fishScene('idle')+
    '<p class="eyebrow" style="margin-top:22px">100만원으로 결혼하기</p>'+
-   '<h1 class="q" tabindex="-1">여섯 가지만 고르면<br>100만원 결혼 계획이 나와요</h1>'+
+   '<h1 class="q" tabindex="-1">몇 가지만 고르면<br>100만원 결혼 계획이 나와요</h1>'+
    '<p class="lead">신혼여행은 빼고, 식대는 포함해서 총 100만원. 시기, 지역, 하객 수, 장소, 식사를 고르면 항목별 금액과 줄이는 방법, 장소 찾는 법, 준비 일정을 정리해 드려요.</p>'+
    '<div class="rules"><div><b>100만원</b><span>총예산 고정</span></div><div><b>식대 포함</b><span>하객 식사까지</span></div><div><b>신혼여행 제외</b><span>예산 밖</span></div></div>'+
    '<ul class="feat">'+
@@ -509,16 +523,17 @@ var QTEXT={
  date:['언제 결혼하세요?','희망 시기를 골라주세요. 인기 시설은 예약이 일찍 차기도 해요.'],
  region:['어느 지역에서 하세요?','장소를 찾을 지역을 골라주세요.'],
  sub:['','세부 지역에 따라 식대와 물가가 조금 달라져요.'],
+ res:['두 분 중 한 분이라도 서울에 주민등록이 되어 있나요?','서울시 공공예식장 비품비 지원(최대 100만원)을 받을 수 있는지 확인해요.'],
  guests:['하객은 몇 명쯤 모실 건가요?','100만원 안에서는 인원이 늘수록 식대가 가장 크게 늘어요.'],
  venue:['어디서 하실 건가요?','대관료를 아낄 수 있는 장소 유형이에요.'],
  meal:['식사는 어떻게 하실 건가요?','식대는 인원 × 1인 비용으로 계산해요.']
 };
 function viewQuestion(){
-  var key=STEP_KEYS[state.step],list=opts(key),t=QTEXT[key].slice();
+  var K=steps(),key=K[state.step],list=opts(key),t=QTEXT[key].slice();
   if(key==='sub'){var r=find('region',state.ans.region);t[0]=(r?r.label:'')+'에서 어디쯤인가요?'}
   if(key==='meal')t[1]=state.ans.venue==='restaurant'?'식당 룸에서는 식당 메뉴로 진행해요. 식대는 인원 × 1인 비용으로 계산해요.':'외부 음식을 들일 수 있는지 장소에 꼭 확인하세요. 식대는 인원 × 1인 비용으로 계산해요.';
-  var fm0=firstMissing(),reach=fm0<0?STEP_KEYS.length-1:fm0,done=fm0<0;
-  var prog='';for(var i=0;i<STEP_KEYS.length;i++){
+  var fm0=firstMissing(),reach=fm0<0?K.length-1:fm0,done=fm0<0;
+  var prog='';for(var i=0;i<K.length;i++){
     var on=(i<=state.step||(done&&state.edit))?' on':'';
     prog+=(i<=reach&&i!==state.step)?'<button class="dot'+on+'" data-a="goto" data-i="'+i+'" aria-label="'+(i+1)+'번 질문으로 이동"></button>':'<span class="dot'+on+'"></span>';
   }
@@ -527,7 +542,7 @@ function viewQuestion(){
     return '<button class="opt'+sel+'" data-a="pick" data-v="'+x.v+'"><span class="ot"><b>'+x.label+'</b>'+(x.sub?'<small>'+x.sub+'</small>':'')+'</span><span class="chev" aria-hidden="true">›</span></button>';
   }).join('');
   return '<section>'+
-   '<div class="qtop"><button class="back" data-a="back">‹ '+(state.step===0?'처음 화면':'이전')+'</button><span class="right"><span class="count">'+(state.step+1)+' / '+STEP_KEYS.length+'</span>'+(done?'<button class="tores" data-a="tores">결과 보기 ›</button>':'')+'</span></div>'+
+   '<div class="qtop"><button class="back" data-a="back">‹ '+(state.step===0?'처음 화면':'이전')+'</button><span class="right"><span class="count">'+(state.step+1)+' / '+K.length+'</span>'+(done?'<button class="tores" data-a="tores">결과 보기 ›</button>':'')+'</span></div>'+
    '<nav class="prog" aria-label="질문 단계">'+prog+'</nav>'+
    '<div class="bubble b-down" style="--tail:'+(state.step%2===0?'30%':'53%')+'">'+
     (state.step>0&&state.ack?'<p class="ack">\''+state.ack+'\' 메모했어요.</p>':'')+
@@ -547,6 +562,8 @@ function panelBudget(c){
     var pct=Math.round(r.amt/BUDGET*100);
     rows+='<li><div class="rl"><span class="rn">'+r.name+(r.note?'<small>'+r.note+'</small>':'')+'</span><span class="ra">'+won(r.amt)+'</span></div><div class="bar'+(r.main?' main':'')+(r.amt<=0?' zero':'')+'"><i style="width:'+Math.min(100,pct)+'%"></i></div></li>';
   });
+  if(c.supportMaybe>0)rows+='<li><div class="rl"><span class="rn">서울시 비품비 지원<small>서울 거주 · 서울시 지정 공공예식장 · 거주 조건을 확인하세요</small></span><span class="ra">조건 충족 시 최대 100만원</span></div></li>';
+  if(c.reg.v==='seoul'&&c.ven.v==='public'&&c.res&&c.res.v==='n')rows+='<li><div class="rl"><span class="rn">서울시 비품비 지원<small>서울 거주자가 아니면 비품비 지원 대상이 아니에요.</small></span><span class="ra">없음</span></div></li>';
   if(c.support>0)rows+='<li><div class="rl"><span class="rn">서울시 비품비 지원<small>서울 거주 · 서울시 지정 공공예식장 · 최대 100만원 (신청 조건 충족 시)</small></span><span class="ra">-'+won(c.support)+'</span></div></li>';
   rows+='<li><div class="rl"><span class="rn">예비비<small>남은 금액</small></span><span class="ra">'+won(Math.max(0,c.reserve))+'</span></div><div class="bar'+(c.reserve<=0?' zero':'')+'"><i style="width:'+Math.min(100,Math.max(0,c.reserve))+'%"></i></div></li>';
   var cutHtml='';
@@ -666,7 +683,7 @@ function viewResult(){
    '<div class="hero">'+verdictScene(c)+'<div class="hdata"><p class="h-eyebrow">예식까지</p>'+
    '<p class="h-days"><span class="num">'+c.days+'</span><span class="unit">일</span><span class="sub">'+months+'</span></p>'+
    '<p class="h-date">'+fmtFull(c.wd)+' 기준'+(c.d.tbd?' (임시 날짜)':'')+'</p>'+
-   '<div class="h-grid">'+chg('date','시기',c.d.label)+chg('region','지역',c.reg.label+' '+c.sub.label)+chg('guests','하객',c.gl)+chg('venue','장소',c.ven.label)+chg('meal','식사',c.meal.label)+
+   '<div class="h-grid">'+chg('date','시기',c.d.label)+chg('region','지역',c.reg.label+' '+c.sub.label)+(c.res?chg('res','거주지',c.res.label):'')+chg('guests','하객',c.gl)+chg('venue','장소',c.ven.label)+chg('meal','식사',c.meal.label)+
    '<div><span class="chg" style="cursor:default;background:none"><span class="k">총 예산</span><span class="v">100만원 (식대 포함)</span></span></div></div>'+
    '<p class="h-tip">항목을 누르면 그것만 바꿀 수 있어요.</p></div></div>'+
    '<div class="tabs" role="tablist">'+tabs+'</div>'+
@@ -731,12 +748,12 @@ document.addEventListener('click',function(e){
   else if(a==='back'){state.ack='';state.lock=false;if(state.step===0){state.view='intro';state.edit=false}else{state.step--}render()}
   else if(a==='goto'){state.ack='';state.lock=false;state.step=+t.getAttribute('data-i');render()}
   else if(a==='tores'){state.ack='';finish(true)}
-  else if(a==='jump'){state.view='q';state.edit=true;state.ack='';state.lock=false;state.step=STEP_KEYS.indexOf(t.getAttribute('data-k'));render()}
+  else if(a==='jump'){state.view='q';state.edit=true;state.ack='';state.lock=false;state.step=steps().indexOf(t.getAttribute('data-k'));render()}
   else if(a==='pick'){
     if(state.lock)return;
     state.lock=true;
-    var key=STEP_KEYS[state.step],v=t.getAttribute('data-v');
-    if(key==='region'&&String(state.ans.region)!==v)delete state.ans.sub;
+    var key=steps()[state.step],v=t.getAttribute('data-v');
+    if(key==='region'&&String(state.ans.region)!==v){delete state.ans.sub;delete state.ans.res}
     state.ans[key]=v;
     var picked=find(key,v);state.ack=picked?picked.label:'';
     if(key==='venue'&&state.ans.meal&&!find('meal',state.ans.meal))delete state.ans.meal;
@@ -747,11 +764,11 @@ document.addEventListener('click',function(e){
       var fm0=firstMissing();
       if(state.edit){
         /* 하나만 고치는 중: 지역을 바꿨으면 세부 지역을, 맞지 않게 된 답이 있으면 그 질문을 묻고, 아니면 바로 결과로 */
-        if(key==='region'){state.step=STEP_KEYS.indexOf('sub');state.lock=false;render()}
+        if(key==='region'){state.step=steps().indexOf('sub');state.lock=false;render()}
         else if(fm0>=0){state.step=fm0;state.lock=false;render()}
         else finish(true);
       }
-      else if(state.step>=STEP_KEYS.length-1){finish()}
+      else if(state.step>=steps().length-1){finish()}
       else{state.step++;state.lock=false;render()}
     },220);
   }
@@ -778,7 +795,7 @@ document.addEventListener('change',function(e){
 });
 
 /* 테스트용 연결부: 브라우저 테스트가 순수 함수를 직접 부를 때 쓴다 */
-window.__app={state:state,calc:calc,firstMissing:firstMissing};
+window.__app={state:state,calc:calc,firstMissing:firstMissing,steps:steps};
 render();
 })();
 </script>
