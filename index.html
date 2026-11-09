@@ -777,6 +777,8 @@ document.addEventListener('change',function(e){
   if(bar)bar.style.width=(n/all.length*100)+'%';
 });
 
+/* 테스트용 연결부: 브라우저 테스트가 순수 함수를 직접 부를 때 쓴다 */
+window.__app={state:state,calc:calc,firstMissing:firstMissing};
 render();
 })();
 </script>

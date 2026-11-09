@@ -1,0 +1,8 @@
+{
+  "name": "100man-wedding",
+  "private": true,
+  "scripts": {
+    "build": "python3 src/build.py",
+    "test": "python3 src/build.py && node --test --test-concurrency=1 tests/*.test.js"
+  }
+}
