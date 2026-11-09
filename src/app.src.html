@@ -715,13 +715,46 @@ function viewResult(){
    '<div class="tabs" role="tablist">'+tabs+'</div>'+
    pn('budget',panelBudget(c))+pn('venue',panelVenue(c))+pn('plan',panelPlan(c))+
    '<p class="fine">금액은 프로토타입용 예시 단가로 계산한 추정치예요. 실제 비용과 다를 수 있어요.</p>'+
-   '<div class="foot"><button class="btn" data-a="edit">질문 처음부터 다시 보기</button><button class="btn ghost" data-a="reset">처음부터 다시</button></div>'+
+   '<div class="foot"><button class="btn" data-a="share">결과 공유하기</button><button class="btn ghost" data-a="edit">질문 처음부터 다시 보기</button><button class="btn ghost" data-a="reset">처음부터 다시</button></div><p class="fine" id="sharemsg" role="status"></p>'+
   '</section>';
 }
 
 /* 휴대폰·브라우저 뒤로가기: 화면이 바뀔 때마다 기록을 남기고, 뒤로가기 하면 그 화면으로 돌아간다. 고른 답은 그대로 둔다. */
 var lastKey='',loadTimer=0,canHist=!!(window.history&&history.pushState);
 function navKey(){return state.view==='q'?'q'+state.step+(state.edit?'e':''):state.view}
+/* 공유 링크: 답을 주소 쿼리에 담는다 (개인정보 없음) */
+var LINK_KEYS={date:'d',region:'r',sub:'s',res:'res',guests:'g',venue:'v',meal:'m'};
+function encodeAns(a){
+  return steps(a).filter(function(k){return a[k]!=null}).map(function(k){return LINK_KEYS[k]+'='+encodeURIComponent(a[k])}).join('&');
+}
+function decodeAns(qs){
+  var q={};
+  String(qs||'').replace(/^\?/,'').split('&').forEach(function(p){var i=p.indexOf('=');if(i>0)q[p.slice(0,i)]=decodeURIComponent(p.slice(i+1))});
+  var ans={},ok=true;
+  /* steps()는 지역에 따라 달라지므로 한 단계씩 읽으며 다시 계산한다 */
+  for(var n=0;n<steps(ans).length;n++){
+    var k=steps(ans)[n],v=q[LINK_KEYS[k]];
+    if(v!=null&&find(k,v,ans))ans[k]=v;else ok=false;
+  }
+  return {ans:ans,ok:ok};
+}
+function syncUrl(){
+  if(!canHist)return;
+  try{
+    if(state.view==='result')history.replaceState(history.state,'','?'+encodeAns(state.ans));
+    else if(state.view==='intro'&&location.search)history.replaceState(history.state,'',location.pathname);
+  }catch(err){}
+}
+function shareLink(){
+  var url=location.href.split('?')[0]+'?'+encodeAns(state.ans),msg=document.getElementById('sharemsg');
+  var say=function(t){if(msg)msg.textContent=t};
+  var copy=function(){
+    try{navigator.clipboard.writeText(url).then(function(){say('링크를 복사했어요.')},function(){say('이 링크를 복사해 주세요: '+url)})}
+    catch(err){say('이 링크를 복사해 주세요: '+url)}
+  };
+  if(navigator.share)navigator.share({title:'100만원으로 결혼하기',url:url}).catch(function(e){if(!e||e.name!=='AbortError')copy()});
+  else copy();
+}
 function record(){
   if(!canHist||state.view==='load')return;
   var k=navKey();if(k===lastKey)return;
@@ -748,6 +781,7 @@ function render(fromHist){
   var h=screen.querySelector('[tabindex="-1"]');
   if(h)h.focus({preventScroll:true});
   if(fromHist)lastKey=navKey();else record();
+  syncUrl();
 }
 
 function finish(keep){
@@ -798,6 +832,7 @@ document.addEventListener('click',function(e){
       else{state.step++;state.lock=false;render()}
     },220);
   }
+  else if(a==='share')shareLink();
   else if(a==='copy'){
     var ta=document.getElementById('consult'),msg=document.getElementById('copymsg');
     var fb=function(){if(ta){ta.focus();ta.select()}if(msg)msg.textContent='선택했어요. 길게 눌러 복사하세요.'};
@@ -821,7 +856,9 @@ document.addEventListener('change',function(e){
 });
 
 /* 테스트용 연결부: 브라우저 테스트가 순수 함수를 직접 부를 때 쓴다 */
-window.__app={state:state,calc:calc,firstMissing:firstMissing,steps:steps,venueList:venueList,oldestChecked:oldestChecked};
+/* 공유 링크로 들어오면 답을 채우고, 다 맞으면 바로 결과를 보여준다 */
+if(location.search){var dl=decodeAns(location.search);state.ans=dl.ans;if(dl.ok)state.view='result'}
+window.__app={state:state,calc:calc,firstMissing:firstMissing,steps:steps,venueList:venueList,oldestChecked:oldestChecked,encodeAns:encodeAns,decodeAns:decodeAns};
 render();
 })();
 </script>
