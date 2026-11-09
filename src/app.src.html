@@ -115,9 +115,16 @@ ul{padding:0;list-style:none}
 .back{min-height:44px;padding:0 12px 0 0;border:0;background:none;color:var(--muted);cursor:pointer;font-size:14px}
 .back:hover{color:var(--fg)}
 .count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-.prog{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:26px}
-.prog i{height:4px;border-radius:2px;background:var(--line)}
-.prog i.on{background:var(--accent)}
+.prog{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:-10px 0 16px}
+.prog .dot{display:block;height:24px;padding:10px 0;border:0;background:none;cursor:default}
+.prog .dot::before{content:'';display:block;height:4px;border-radius:2px;background:var(--line)}
+.prog .dot.on::before{background:var(--accent)}
+.prog button.dot{cursor:pointer}
+.prog button.dot:hover::before{filter:brightness(.85)}
+.prog button.dot:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+.qtop .right{display:flex;align-items:center;gap:12px}
+.tores{min-height:44px;padding:0 0 0 4px;border:0;background:none;color:var(--accent-text);font-weight:600;cursor:pointer;font-size:14px}
+.tores:hover{text-decoration:underline}
 .opts{display:flex;flex-direction:column;gap:10px;margin-top:24px}
 .opt{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:62px;padding:12px 16px;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;cursor:pointer;transition:border-color .15s,background .15s}
 .opt:hover{border-color:var(--ink)}
@@ -145,6 +152,13 @@ ul{padding:0;list-style:none}
 .h-grid dt{font-size:12px;color:var(--muted)}
 .h-grid dd{font-weight:600;font-variant-numeric:tabular-nums}
 .h-grid div{min-width:0}
+.h-grid .chg{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:52px;margin:-6px -8px;padding:6px 8px;border:0;border-radius:10px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;box-sizing:content-box}
+.h-grid .chg:hover{background:var(--surface-2)}
+.h-grid .chg:focus-visible{outline:2px solid var(--ink)}
+.h-grid .chg .k{font-size:12px;color:var(--muted)}
+.h-grid .chg .v{font-weight:600;overflow-wrap:anywhere}
+.h-grid .chg .e{font-size:12px;color:var(--accent-text);font-weight:600}
+.h-tip{font-size:12px;color:var(--muted);margin-top:12px}
 .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:14px;padding:6px;background:var(--surface-2);border-radius:12px}
 .tabs button{min-height:44px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:600;cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
@@ -310,7 +324,12 @@ var STEP_KEYS=['date','region','sub','guests','venue','meal'];
 var DEMO={date:'q1',region:'seoul',sub:'gs',guests:'20',venue:'public',meal:'box'};
 var WD=['일','월','화','수','목','금','토'];
 
-var state={view:'intro',step:0,ans:{},tab:'budget',checks:{},lock:false,ack:''};
+var state={view:'intro',step:0,ans:{},tab:'budget',checks:{},lock:false,ack:'',edit:false};
+/* 답이 비었거나 더 이상 맞지 않는 첫 질문 번호. 다 답했으면 -1 */
+function firstMissing(){
+  for(var i=0;i<STEP_KEYS.length;i++){var k=STEP_KEYS[i];if(state.ans[k]==null||!find(k,state.ans[k]))return i}
+  return -1;
+}
 
 /* 사용자가 그린 그림: 모자 쓴 오리, 흰 오리, 연못(갈색 다리) */
 var IMG={cap:'data:image/webp;base64,__CAP__',white:'data:image/webp;base64,__WHITE__'};
@@ -491,14 +510,18 @@ function viewQuestion(){
   var key=STEP_KEYS[state.step],list=opts(key),t=QTEXT[key].slice();
   if(key==='sub'){var r=find('region',state.ans.region);t[0]=(r?r.label:'')+'에서 어디쯤인가요?'}
   if(key==='meal')t[1]=state.ans.venue==='restaurant'?'식당 룸에서는 식당 메뉴로 진행해요. 식대는 인원 × 1인 비용으로 계산해요.':'외부 음식을 들일 수 있는지 장소에 꼭 확인하세요. 식대는 인원 × 1인 비용으로 계산해요.';
-  var prog='';for(var i=0;i<STEP_KEYS.length;i++)prog+='<i class="'+(i<=state.step?'on':'')+'"></i>';
+  var fm0=firstMissing(),reach=fm0<0?STEP_KEYS.length-1:fm0,done=fm0<0;
+  var prog='';for(var i=0;i<STEP_KEYS.length;i++){
+    var on=(i<=state.step||(done&&state.edit))?' on':'';
+    prog+=(i<=reach&&i!==state.step)?'<button class="dot'+on+'" data-a="goto" data-i="'+i+'" aria-label="'+(i+1)+'번 질문으로 이동"></button>':'<span class="dot'+on+'"></span>';
+  }
   var o=list.map(function(x){
     var sel=String(state.ans[key])===String(x.v)?' sel':'';
     return '<button class="opt'+sel+'" data-a="pick" data-v="'+x.v+'"><span class="ot"><b>'+x.label+'</b>'+(x.sub?'<small>'+x.sub+'</small>':'')+'</span><span class="chev" aria-hidden="true">›</span></button>';
   }).join('');
   return '<section>'+
-   '<div class="qtop"><button class="back" data-a="back">‹ 이전</button><span class="count">'+(state.step+1)+' / '+STEP_KEYS.length+'</span></div>'+
-   '<div class="prog" aria-hidden="true">'+prog+'</div>'+
+   '<div class="qtop"><button class="back" data-a="back">‹ '+(state.step===0?'처음 화면':'이전')+'</button><span class="right"><span class="count">'+(state.step+1)+' / '+STEP_KEYS.length+'</span>'+(done?'<button class="tores" data-a="tores">결과 보기 ›</button>':'')+'</span></div>'+
+   '<nav class="prog" aria-label="질문 단계">'+prog+'</nav>'+
    '<div class="bubble b-down" style="--tail:'+(state.step%2===0?'30%':'53%')+'">'+
     (state.step>0&&state.ack?'<p class="ack">\''+state.ack+'\' 메모했어요.</p>':'')+
     '<h1 class="q" tabindex="-1">'+t[0]+'</h1></div>'+fishScene('idle')+'<p class="hint">'+t[1]+'</p>'+
@@ -622,6 +645,9 @@ function verdictScene(c){
   else{f='catch';tail='55%';say='잡았다! 합계 '+won(c.total)+'이면 돼요. 예비비 '+won(c.reserve)+'이 남아요.'}
   return '<div class="hsay"><div class="bubble b-down" style="--tail:'+tail+'"><p>'+say+'</p></div></div>'+fishScene(f);
 }
+function chg(k,label,val){
+  return '<div><button class="chg" data-a="jump" data-k="'+k+'" aria-label="'+label+' 바꾸기: 지금 '+val+'"><span class="k">'+label+'</span><span class="v">'+val+'</span><span class="e" aria-hidden="true">바꾸기 ›</span></button></div>';
+}
 function viewResult(){
   var c=calc(state.ans);
   var months=c.days<30?'1개월 미만':'약 '+Math.round(c.days/30.44)+'개월';
@@ -633,16 +659,37 @@ function viewResult(){
    '<div class="hero">'+verdictScene(c)+'<div class="hdata"><p class="h-eyebrow">예식까지</p>'+
    '<p class="h-days"><span class="num">'+c.days+'</span><span class="unit">일</span><span class="sub">'+months+'</span></p>'+
    '<p class="h-date">'+fmtFull(c.wd)+' 기준'+(c.d.tbd?' (임시 날짜)':'')+'</p>'+
-   '<dl class="h-grid"><div><dt>총 예산</dt><dd>100만원 (식대 포함)</dd></div><div><dt>하객</dt><dd>'+c.gl+'</dd></div>'+
-   '<div><dt>지역</dt><dd>'+c.reg.label+' '+c.sub.label+'</dd></div><div><dt>장소 · 식사</dt><dd>'+c.ven.label+' · '+c.meal.label+'</dd></div></dl></div></div>'+
+   '<div class="h-grid">'+chg('date','시기',c.d.label)+chg('region','지역',c.reg.label+' '+c.sub.label)+chg('guests','하객',c.gl)+chg('venue','장소',c.ven.label)+chg('meal','식사',c.meal.label)+
+   '<div><span class="chg" style="cursor:default;background:none"><span class="k">총 예산</span><span class="v">100만원 (식대 포함)</span></span></div></div>'+
+   '<p class="h-tip">항목을 누르면 그것만 바꿀 수 있어요.</p></div></div>'+
    '<div class="tabs" role="tablist">'+tabs+'</div>'+
    pn('budget',panelBudget(c))+pn('venue',panelVenue(c))+pn('plan',panelPlan(c))+
    '<p class="fine">금액은 프로토타입용 예시 단가로 계산한 추정치예요. 실제 비용과 다를 수 있어요.</p>'+
-   '<div class="foot"><button class="btn" data-a="edit">조건 바꾸기</button><button class="btn ghost" data-a="reset">처음부터 다시</button></div>'+
+   '<div class="foot"><button class="btn" data-a="edit">질문 처음부터 다시 보기</button><button class="btn ghost" data-a="reset">처음부터 다시</button></div>'+
   '</section>';
 }
 
-function render(){
+/* 휴대폰·브라우저 뒤로가기: 화면이 바뀔 때마다 기록을 남기고, 뒤로가기 하면 그 화면으로 돌아간다. 고른 답은 그대로 둔다. */
+var lastKey='',loadTimer=0,canHist=!!(window.history&&history.pushState);
+function navKey(){return state.view==='q'?'q'+state.step+(state.edit?'e':''):state.view}
+function record(){
+  if(!canHist||state.view==='load')return;
+  var k=navKey();if(k===lastKey)return;
+  var snap={view:state.view,step:state.step,edit:state.edit};
+  try{if(lastKey)history.pushState(snap,'');else history.replaceState(snap,'')}catch(err){}
+  lastKey=k;
+}
+window.addEventListener('popstate',function(e){
+  var s=e.state||{view:'intro',step:0,edit:false};
+  clearTimeout(loadTimer);
+  state.lock=false;state.ack='';
+  state.view=s.view;state.step=s.step||0;state.edit=!!s.edit;
+  var fm0=firstMissing();
+  if(state.view==='result'&&fm0>=0){state.view='q';state.step=fm0}
+  if(state.view==='q'&&fm0>=0&&state.step>fm0)state.step=fm0;
+  render(true);
+});
+function render(fromHist){
   var html=state.view==='intro'?viewIntro():state.view==='q'?viewQuestion():state.view==='load'?viewLoad():viewResult();
   screen.className='screen';
   screen.innerHTML=html;
@@ -650,11 +697,14 @@ function render(){
   window.scrollTo(0,0);
   var h=screen.querySelector('[tabindex="-1"]');
   if(h)h.focus({preventScroll:true});
+  if(fromHist)lastKey=navKey();else record();
 }
 
-function finish(){
-  state.view='load';state.tab='budget';state.checks={};render();
-  setTimeout(function(){state.view='result';state.lock=false;render()},800);
+function finish(keep){
+  state.edit=false;
+  if(!keep){state.tab='budget';state.checks={}}
+  state.view='load';render();
+  loadTimer=setTimeout(function(){state.view='result';state.lock=false;render()},keep?350:800);
 }
 function setTab(t){
   state.tab=t;
@@ -671,7 +721,10 @@ document.addEventListener('click',function(e){
   var a=t.getAttribute('data-a');
   if(a==='start'){state.view='q';state.step=0;state.ack='';render()}
   else if(a==='demo'){state.ans=JSON.parse(JSON.stringify(DEMO));finish()}
-  else if(a==='back'){state.ack='';if(state.step===0){state.view='intro'}else{state.step--}render()}
+  else if(a==='back'){state.ack='';state.lock=false;if(state.step===0){state.view='intro';state.edit=false}else{state.step--}render()}
+  else if(a==='goto'){state.ack='';state.lock=false;state.step=+t.getAttribute('data-i');render()}
+  else if(a==='tores'){state.ack='';finish(true)}
+  else if(a==='jump'){state.view='q';state.edit=true;state.ack='';state.lock=false;state.step=STEP_KEYS.indexOf(t.getAttribute('data-k'));render()}
   else if(a==='pick'){
     if(state.lock)return;
     state.lock=true;
@@ -684,7 +737,14 @@ document.addEventListener('click',function(e){
     for(var i=0;i<sibs.length;i++)sibs[i].classList.remove('sel');
     t.classList.add('sel');
     setTimeout(function(){
-      if(state.step>=STEP_KEYS.length-1){finish()}
+      var fm0=firstMissing();
+      if(state.edit){
+        /* 하나만 고치는 중: 지역을 바꿨으면 세부 지역을, 맞지 않게 된 답이 있으면 그 질문을 묻고, 아니면 바로 결과로 */
+        if(key==='region'){state.step=STEP_KEYS.indexOf('sub');state.lock=false;render()}
+        else if(fm0>=0){state.step=fm0;state.lock=false;render()}
+        else finish(true);
+      }
+      else if(state.step>=STEP_KEYS.length-1){finish()}
       else{state.step++;state.lock=false;render()}
     },220);
   }
@@ -694,8 +754,8 @@ document.addEventListener('click',function(e){
     try{navigator.clipboard.writeText(ta.value).then(function(){if(msg)msg.textContent='복사했어요.'},fb)}catch(err){fb()}
   }
   else if(a==='tab')setTab(t.getAttribute('data-tab'));
-  else if(a==='edit'){state.view='q';state.step=0;state.lock=false;state.ack='';render()}
-  else if(a==='reset'){state.ans={};state.view='intro';state.step=0;state.lock=false;state.ack='';render()}
+  else if(a==='edit'){state.view='q';state.step=0;state.edit=false;state.lock=false;state.ack='';render()}
+  else if(a==='reset'){state.ans={};state.view='intro';state.step=0;state.edit=false;state.lock=false;state.ack='';render()}
 });
 document.addEventListener('change',function(e){
   var el=e.target;
