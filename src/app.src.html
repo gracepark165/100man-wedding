@@ -670,6 +670,32 @@ function panelVenue(c){
    '<p class="fine">이 프로토타입은 장소 유형을 안내하고 지도 검색으로 연결해요. 시설별 실시간 예약 정보는 데이터 연동 후 제공할 수 있어요.</p>';
 }
 
+/* 체크 저장: 답 조합마다 따로. 저장이 막힌 브라우저에서도 화면은 그대로 동작한다 */
+function loadChecks(a){try{var v=localStorage.getItem('chk:'+encodeAns(a));return v?JSON.parse(v)||{}:{}}catch(err){return {}}}
+function saveChecks(a,checks){try{localStorage.setItem('chk:'+encodeAns(a),JSON.stringify(checks))}catch(err){}}
+/* 캘린더 파일(.ics): 할 일마다 종일 일정 하나 */
+function icsDate(d){return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)}
+function icsText(t){return String(t).replace(/\\/g,'\\\\').replace(/;/g,'\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n')}
+function buildIcs(items){
+  var now=new Date(),stamp=now.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//100man-wedding//KO','CALSCALE:GREGORIAN'];
+  items.forEach(function(x,i){
+    var end=new Date(x.due.getFullYear(),x.due.getMonth(),x.due.getDate()+1);
+    L.push('BEGIN:VEVENT','UID:'+i+'-'+icsDate(x.due)+'@100man-wedding','DTSTAMP:'+stamp,
+     'DTSTART;VALUE=DATE:'+icsDate(x.due),'DTEND;VALUE=DATE:'+icsDate(end),'SUMMARY:'+icsText(x.t),'DESCRIPTION:'+icsText(x.d),'END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  return L.join('\r\n')+'\r\n';
+}
+function downloadIcs(){
+  var c=calc(state.ans),left=milestones(c).filter(function(x){return x.dd>=0}),msg=document.getElementById('icsmsg');
+  if(!left.length){if(msg)msg.textContent='남은 할 일이 없어 캘린더에 넣을 일정이 없어요.';return}
+  var url=URL.createObjectURL(new Blob([buildIcs(left)],{type:'text/calendar;charset=utf-8'}));
+  var link=document.createElement('a');link.href=url;link.download='wedding-plan.ics';
+  document.body.appendChild(link);link.click();link.remove();
+  setTimeout(function(){URL.revokeObjectURL(url)},1000);
+  if(msg)msg.textContent='캘린더 파일을 받았어요. 열면 휴대폰 캘린더에 추가돼요.';
+}
 function panelPlan(c){
   var ms=milestones(c);
   var urgent=ms.filter(function(x){return x.m>0&&x.dd<=14}).sort(function(a,b){return b.m-a.m});
@@ -681,7 +707,8 @@ function panelPlan(c){
   }
   var done=ms.filter(function(x){return state.checks[x.i]}).length;
   var alert=urgent.length>=4?'<p class="alert">예식까지 시간이 짧아서 앞 단계 '+urgent.length+'가지가 한꺼번에 몰려 있어요. 장소 예약을 가장 먼저 하세요.</p>':'';
-  return '<div class="pgrow"><span>준비 진행</span><span id="pgtext">'+done+' / '+ms.length+' 완료</span></div><div class="pgbar"><i id="pgbar" style="width:'+(done/ms.length*100)+'%"></i></div>'+alert+
+  return '<div class="pgrow"><span>준비 진행</span><span id="pgtext">'+done+' / '+ms.length+' 완료</span></div><div class="pgbar"><i id="pgbar" style="width:'+(done/ms.length*100)+'%"></i></div>'+
+   '<button class="btn ghost sm" data-a="ics" style="margin-top:8px">내 캘린더에 넣기</button><p class="fine" id="icsmsg" role="status"></p>'+alert+
    (urgent.length?'<h2 class="sec">지금 챙길 일</h2><ul>'+urgent.map(item).join('')+'</ul>':'')+
    (later.length?'<h2 class="sec">앞으로 할 일</h2><ul>'+later.map(item).join('')+'</ul>':'');
 }
@@ -786,7 +813,8 @@ function render(fromHist){
 
 function finish(keep){
   state.edit=false;
-  if(!keep){state.tab='budget';state.checks={}}
+  if(!keep)state.tab='budget';
+  state.checks=loadChecks(state.ans);
   state.view='load';render();
   loadTimer=setTimeout(function(){state.view='result';state.lock=false;render()},keep?350:800);
 }
@@ -833,6 +861,7 @@ document.addEventListener('click',function(e){
     },220);
   }
   else if(a==='share')shareLink();
+  else if(a==='ics')downloadIcs();
   else if(a==='copy'){
     var ta=document.getElementById('consult'),msg=document.getElementById('copymsg');
     var fb=function(){if(ta){ta.focus();ta.select()}if(msg)msg.textContent='선택했어요. 길게 눌러 복사하세요.'};
@@ -846,6 +875,7 @@ document.addEventListener('change',function(e){
   var el=e.target;
   if(!el.matches||!el.matches('.task input'))return;
   state.checks[el.getAttribute('data-i')]=el.checked;
+  saveChecks(state.ans,state.checks);
   var row=el.closest('.task');
   if(row)row.classList.toggle('done',el.checked);
   var all=screen.querySelectorAll('.task input'),n=0;
@@ -857,8 +887,8 @@ document.addEventListener('change',function(e){
 
 /* 테스트용 연결부: 브라우저 테스트가 순수 함수를 직접 부를 때 쓴다 */
 /* 공유 링크로 들어오면 답을 채우고, 다 맞으면 바로 결과를 보여준다 */
-if(location.search){var dl=decodeAns(location.search);state.ans=dl.ans;if(dl.ok)state.view='result'}
-window.__app={state:state,calc:calc,firstMissing:firstMissing,steps:steps,venueList:venueList,oldestChecked:oldestChecked,encodeAns:encodeAns,decodeAns:decodeAns};
+if(location.search){var dl=decodeAns(location.search);state.ans=dl.ans;if(dl.ok){state.view='result';state.checks=loadChecks(state.ans)}}
+window.__app={state:state,calc:calc,firstMissing:firstMissing,steps:steps,venueList:venueList,oldestChecked:oldestChecked,encodeAns:encodeAns,decodeAns:decodeAns,buildIcs:buildIcs};
 render();
 })();
 </script>
