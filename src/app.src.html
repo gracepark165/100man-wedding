@@ -342,7 +342,7 @@ var RES=[
 var DEMO={date:'q1',region:'seoul',sub:'gs',res:'y',guests:'20',venue:'public',meal:'box'};
 var WD=['일','월','화','수','목','금','토'];
 
-var state={view:'intro',step:0,ans:{},tab:'budget',checks:{},lock:false,ack:'',edit:false};
+var state={view:'intro',step:0,ans:{},tab:'budget',prog:{done:{},skip:[]},lock:false,ack:'',edit:false};
 /* 답이 비었거나 더 이상 맞지 않는 첫 질문 번호. 다 답했으면 -1 */
 function firstMissing(){
   var K=steps();
@@ -484,23 +484,59 @@ function calc(a){
     wd:wd,today:today,days:days,gl:find('guests',a.guests,a).label,supportMaybe:supportMaybe,res:find('res',a.res,a)};
 }
 
-function milestones(c){
-  return [
-   {m:3,lab:'3개월',t:'규모와 100만원 원칙을 양가에 먼저 공유하기',d:'하객 범위와 식사 방식, 직접 해결할 부분을 함께 정해요'},
-   {m:2.5,lab:'2개월 반',t:'장소 후보 확인하고 날짜 예약하기',d:c.d.peak?'봄·가을 주말은 인기 시설이 일찍 차요. 신청 시기를 먼저 확인하세요':'신청 일정과 이용 조건을 시설에 직접 확인해요'},
-   {m:2,lab:'2개월',t:'식사 견적 받고 업체나 식당 확정하기',d:'인원과 날짜가 정해졌다면 2~3곳 견적을 비교해요'},
-   {m:1.5,lab:'1개월 반',t:'의상, 메이크업, 촬영 담당 정하기',d:'대여할 것과 직접 해결할 것을 나눠요'},
-   {m:1,lab:'1개월',t:'모바일 청첩장 보내고 참석 여부 받기',d:'식대는 인원 기준이라 참석 확인이 중요해요'},
-   {m:0.8,lab:'3주',t:'안내요원 구하고 꽃·장식 준비하기',d:'안내 담당의 시간과 비용을 정하고, 꽃과 소품은 직접 준비할지 주문할지 정해요'},
-   {m:0.5,lab:'2주',t:'식사 인원 최종 전달, 식순과 진행자 정하기',d:'사회와 축가는 지인에게 부탁하면 비용이 들지 않아요'},
-   {m:0.15,lab:'1주',t:'최종 점검 (소품, 반입 음식, 우천 대안)',d:'당일 연락 담당과 짐 옮길 사람을 정해요'},
-   {m:0,lab:'예식 전후',t:'혼인신고하기 (구청)',d:'신고를 마쳐야 법적으로 부부가 돼요. 편한 날에 하세요'}
-  ].map(function(x,i){
+/* 비서가 정하는 할 일 목록. id는 기록 키라 바꾸지 않는다. m: 예식 몇 개월 전이 기한인지 (null이면 기한 없음) */
+var SUPPORT_URL='https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=5131BE613817CADFE063A60221622406';
+function coachTasks(c){
+  var pub=c.reg.v==='seoul'&&c.ven.v==='public',res=c.res?c.res.v:'';
+  var L=[];
+  if(c.over>0)L.push({id:'budget',m:null,lab:'',t:'예산부터 맞춰요',d:'',why:'합계가 '+won(c.total)+'라 100만원보다 '+won(c.over)+'만큼 많아요. 장소와 날짜를 정하기 전에 규모를 먼저 맞춰야 해요.',act:{type:'tab',tab:'budget',label:'줄이는 방법 보기'}});
+  if(pub&&res==='u')L.push({id:'res-check',m:null,lab:'',t:'비품비 지원 자격 확인하기',d:'',why:'두 분 중 한 분이 서울에 주민등록이 되어 있으면 최대 100만원을 지원받아요. 주민등록 주소부터 확인해요.',act:{type:'q',key:'res',label:'거주지 다시 답하기'}});
+  L.push({id:'share',m:3,lab:'3개월',t:'규모와 100만원 원칙을 양가에 먼저 공유하기',d:'하객 범위와 식사 방식, 직접 해결할 부분을 함께 정해요'});
+  if(pub)L.push({id:'consult',m:6,lab:'6개월',t:'서울시 공공예식장 상담 신청하기',d:'상담 후 협력업체를 통해 예약신청서를 내야 확정돼요',
+    why:(c.d.peak?'봄·가을 주말은 6개월 전에 마감되기도 해요.':'상담 후 협력업체 계약까지 시간이 걸려요.')+' 예식까지 '+c.days+'일 남았어요.',
+    act:{type:'link',href:'https://wedding.seoulwomen.or.kr',label:'상담 신청 바로가기'}});
+  L.push({id:'venue',m:2.5,lab:'2개월 반',t:'장소 후보 확인하고 날짜 예약하기',d:c.d.peak?'봄·가을 주말은 인기 시설이 일찍 차요. 신청 시기를 먼저 확인하세요':'신청 일정과 이용 조건을 시설에 직접 확인해요'},
+   {id:'meal',m:2,lab:'2개월',t:'식사 견적 받고 업체나 식당 확정하기',d:'인원과 날짜가 정해졌다면 2~3곳 견적을 비교해요'},
+   {id:'attire',m:1.5,lab:'1개월 반',t:'의상, 메이크업, 촬영 담당 정하기',d:'대여할 것과 직접 해결할 것을 나눠요'},
+   {id:'invite',m:1,lab:'1개월',t:'모바일 청첩장 보내고 참석 여부 받기',d:'식대는 인원 기준이라 참석 확인이 중요해요'},
+   {id:'staff',m:0.8,lab:'3주',t:'안내요원 구하고 꽃·장식 준비하기',d:'안내 담당의 시간과 비용을 정하고, 꽃과 소품은 직접 준비할지 주문할지 정해요'},
+   {id:'count',m:0.5,lab:'2주',t:'식사 인원 최종 전달, 식순과 진행자 정하기',d:'사회와 축가는 지인에게 부탁하면 비용이 들지 않아요'});
+  if(pub&&res==='y')L.push({id:'support',m:0.25,lab:'1주',t:'비품비 지원 신청하기 (예식 1주 전까지)',d:'협약 카드 바우처로 받아 협약업체 결제에 써요',why:'예식 1주 전까지 온라인으로 신청해야 받을 수 있어요. 국민행복카드가 필요해요.',act:{type:'link',href:SUPPORT_URL,label:'지원 신청 바로가기'}});
+  L.push({id:'final',m:0.15,lab:'1주',t:'최종 점검 (소품, 반입 음식, 우천 대안)',d:'당일 연락 담당과 짐 옮길 사람을 정해요'},
+   {id:'register',m:0,lab:'예식 전후',t:'혼인신고하기 (구청)',d:'신고를 마쳐야 법적으로 부부가 돼요. 편한 날에 하세요'});
+  var ACT={venue:{type:'tab',tab:'venue',label:'장소 후보 보기'}};
+  return L.map(function(x){
+    if(x.why==null)x.why=x.d;
+    if(x.act===undefined)x.act=ACT[x.id]||null;
+    if(x.m==null){x.due=null;x.dd=null;return x}
     var back=Math.round(x.m*30.44);
     x.due=new Date(c.wd.getFullYear(),c.wd.getMonth(),c.wd.getDate()-back);
-    x.i=i;x.dd=Math.round((x.due-c.today)/864e5);
+    x.dd=Math.round((x.due-c.today)/864e5);
     return x;
   });
+}
+/* 순서: 예산 → 자격 확인 → 기한 14일 안·지난 일 → 나머지 → 건너뛴 일(건너뛴 순서). 같은 단계는 m 큰 것 먼저 */
+function coachOrder(tasks,prog){
+  prog=prog||{};var done=prog.done||{},skip=prog.skip||[];
+  var todo=[],fin=[];
+  tasks.forEach(function(x,i){(done[x.id]?fin:todo).push(x)});
+  function tier(x){
+    var k=skip.indexOf(x.id);if(k>=0)return 4;
+    if(x.id==='budget')return 0;if(x.id==='res-check')return 1;
+    if(x.m>0&&x.dd<=14)return 2;return 3;
+  }
+  todo.sort(function(a,b){
+    var ta=tier(a),tb=tier(b);if(ta!==tb)return ta-tb;
+    if(ta===4)return skip.indexOf(a.id)-skip.indexOf(b.id);
+    return (b.m==null?99:b.m)-(a.m==null?99:a.m)||tasks.indexOf(a)-tasks.indexOf(b);
+  });
+  return {todo:todo,done:fin};
+}
+function coachGroup(x){
+  if(x.id==='budget'||x.id==='res-check')return 'now';
+  if(x.id!=='register'&&x.dd!=null&&x.dd<=14)return 'now';
+  if(x.dd!=null&&x.dd<=45)return 'month';
+  return 'later';
 }
 
 /* ---------- views ---------- */
@@ -674,8 +710,13 @@ function panelVenue(c){
 }
 
 /* 체크 저장: 답 조합마다 따로. 저장이 막힌 브라우저에서도 화면은 그대로 동작한다 */
-function loadChecks(a){try{var v=localStorage.getItem('chk:'+encodeAns(a));return v?JSON.parse(v)||{}:{}}catch(err){return {}}}
-function saveChecks(a,checks){try{localStorage.setItem('chk:'+encodeAns(a),JSON.stringify(checks))}catch(err){}}
+function loadProg(a){
+  try{var v=JSON.parse(localStorage.getItem('coach:'+encodeAns(a))||'null');
+    if(v&&typeof v==='object')return {done:v.done&&typeof v.done==='object'?v.done:{},skip:Array.isArray(v.skip)?v.skip:[]};
+  }catch(err){}
+  return {done:{},skip:[]};
+}
+function saveProg(a,prog){try{localStorage.setItem('coach:'+encodeAns(a),JSON.stringify(prog))}catch(err){}}
 /* 캘린더 파일(.ics): 할 일마다 종일 일정 하나 */
 function icsDate(d){return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)}
 function icsText(t){return String(t).replace(/\\/g,'\\\\').replace(/;/g,'\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n')}
@@ -684,14 +725,14 @@ function buildIcs(items){
   var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//100man-wedding//KO','CALSCALE:GREGORIAN'];
   items.forEach(function(x,i){
     var end=new Date(x.due.getFullYear(),x.due.getMonth(),x.due.getDate()+1);
-    L.push('BEGIN:VEVENT','UID:'+(x.i!=null?x.i:i)+'-'+icsDate(x.due)+'@100man-wedding','DTSTAMP:'+stamp,
+    L.push('BEGIN:VEVENT','UID:'+(x.id||i)+'-'+icsDate(x.due)+'@100man-wedding','DTSTAMP:'+stamp,
      'DTSTART;VALUE=DATE:'+icsDate(x.due),'DTEND;VALUE=DATE:'+icsDate(end),'SUMMARY:'+icsText(x.t),'DESCRIPTION:'+icsText(x.d),'END:VEVENT');
   });
   L.push('END:VCALENDAR');
   return L.join('\r\n')+'\r\n';
 }
 function downloadIcs(){
-  var c=calc(state.ans),left=milestones(c).filter(function(x){return x.dd>=0}),msg=document.getElementById('icsmsg');
+  var c=calc(state.ans),left=coachTasks(c).filter(function(x){return x.m!=null&&x.dd>=0&&!state.prog.done[x.id]}),msg=document.getElementById('icsmsg');
   if(!left.length){if(msg)msg.textContent='남은 할 일이 없어 캘린더에 넣을 일정이 없어요.';return}
   var url=URL.createObjectURL(new Blob([buildIcs(left)],{type:'text/calendar;charset=utf-8'}));
   var link=document.createElement('a');link.href=url;link.download='wedding-plan.ics';
@@ -700,15 +741,15 @@ function downloadIcs(){
   if(msg)msg.textContent='캘린더 파일을 받았어요. 열면 휴대폰 캘린더에 추가돼요.';
 }
 function panelPlan(c){
-  var ms=milestones(c);
+  var ms=coachTasks(c).filter(function(x){return x.m!=null}),D=state.prog.done;
   var urgent=ms.filter(function(x){return x.m>0&&x.dd<=14}).sort(function(a,b){return b.m-a.m});
   var later=ms.filter(function(x){return !(x.m>0&&x.dd<=14)}).sort(function(a,b){return a.due-b.due||b.m-a.m});
   function item(x){
-    var now=x.m>0&&x.dd<=0,cls='task'+(now?' now':'')+(state.checks[x.i]?' done':'');
+    var now=x.m>0&&x.dd<=0,cls='task'+(now?' now':'')+(D[x.id]?' done':'');
     var when=x.m===0?'예식일 전후':(now?'지금 바로 시작':(fmtShort(x.due)+'까지'+(x.dd<=14?' ('+x.dd+'일 뒤)':' · 예식 '+x.lab+' 전')));
-    return '<li><label class="'+cls+'"><input type="checkbox" data-i="'+x.i+'"'+(state.checks[x.i]?' checked':'')+'><span><span class="t">'+x.t+'</span><br><span class="d">'+x.d+'</span><br><span class="w">'+when+'</span></span></label></li>';
+    return '<li><label class="'+cls+'"><input type="checkbox" data-id="'+x.id+'"'+(D[x.id]?' checked':'')+'><span><span class="t">'+x.t+'</span><br><span class="d">'+x.d+'</span><br><span class="w">'+when+'</span></span></label></li>';
   }
-  var done=ms.filter(function(x){return state.checks[x.i]}).length;
+  var done=ms.filter(function(x){return D[x.id]}).length;
   var alert=urgent.length>=4?'<p class="alert">예식까지 시간이 짧아서 앞 단계 '+urgent.length+'가지가 한꺼번에 몰려 있어요. 장소 예약을 가장 먼저 하세요.</p>':'';
   return '<div class="pgrow"><span>준비 진행</span><span id="pgtext">'+done+' / '+ms.length+' 완료</span></div><div class="pgbar"><i id="pgbar" style="width:'+(done/ms.length*100)+'%"></i></div>'+
    '<button class="btn ghost sm" data-a="ics" style="margin-top:8px">내 캘린더에 넣기</button><p class="fine" id="icsmsg" role="status"></p>'+alert+
@@ -816,7 +857,7 @@ window.addEventListener('popstate',function(e){
   var fm0=firstMissing();
   if(state.view==='result'&&fm0>=0){state.view='q';state.step=fm0}
   if(state.view==='q'&&fm0>=0&&state.step>fm0)state.step=fm0;
-  if(state.view==='result')state.checks=loadChecks(state.ans);
+  if(state.view==='result')state.prog=loadProg(state.ans);
   render(true);
 });
 function render(fromHist){
@@ -834,7 +875,7 @@ function render(fromHist){
 function finish(keep){
   state.edit=false;
   if(!keep)state.tab='budget';
-  state.checks=loadChecks(state.ans);
+  state.prog=loadProg(state.ans);
   state.view='load';render();
   loadTimer=setTimeout(function(){state.view='result';state.lock=false;render();if(!keep)track('result')},keep?350:800);
 }
@@ -895,8 +936,9 @@ document.addEventListener('click',function(e){
 document.addEventListener('change',function(e){
   var el=e.target;
   if(!el.matches||!el.matches('.task input'))return;
-  state.checks[el.getAttribute('data-i')]=el.checked;
-  saveChecks(state.ans,state.checks);
+  var id=el.getAttribute('data-id');
+  if(el.checked)state.prog.done[id]=true;else delete state.prog.done[id];
+  saveProg(state.ans,state.prog);
   var row=el.closest('.task');
   if(row)row.classList.toggle('done',el.checked);
   var all=screen.querySelectorAll('.task input'),n=0;
@@ -908,8 +950,8 @@ document.addEventListener('change',function(e){
 
 /* 테스트용 연결부: 브라우저 테스트가 순수 함수를 직접 부를 때 쓴다 */
 /* 공유 링크로 들어오면 답을 채우고, 다 맞으면 바로 결과를 보여준다 */
-if(location.search){var dl=decodeAns(location.search);state.ans=dl.ans;if(dl.ok){state.view='result';state.checks=loadChecks(state.ans)}}
-window.__app={state:state,calc:calc,firstMissing:firstMissing,steps:steps,venueList:venueList,oldestChecked:oldestChecked,encodeAns:encodeAns,decodeAns:decodeAns,buildIcs:buildIcs};
+if(location.search){var dl=decodeAns(location.search);state.ans=dl.ans;if(dl.ok){state.view='result';state.prog=loadProg(state.ans)}}
+window.__app={state:state,calc:calc,firstMissing:firstMissing,steps:steps,venueList:venueList,oldestChecked:oldestChecked,encodeAns:encodeAns,decodeAns:decodeAns,buildIcs:buildIcs,coachTasks:coachTasks,coachOrder:coachOrder,coachGroup:coachGroup};
 render();
 })();
 </script>

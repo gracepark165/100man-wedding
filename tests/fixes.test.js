@@ -29,11 +29,11 @@ test('demo result is complete and shares', async () => {
   } finally { await browser.close(); }
 });
 
-test('ics uid stable by milestone index', async () => {
+test('ics uid stable by task id', async () => {
   const { browser, page } = await open();
   try {
-    const ics = await page.evaluate(() => window.__app.buildIcs([{ t: 'a', d: 'b', due: new Date(2027, 0, 5), i: 7 }]));
-    assert.ok(ics.includes('UID:7-20270105@100man-wedding'), ics);
+    const ics = await page.evaluate(() => window.__app.buildIcs([{ t: 'a', d: 'b', due: new Date(2027, 0, 5), id: 'venue' }]));
+    assert.ok(ics.includes('UID:venue-20270105@100man-wedding'), ics);
   } finally { await browser.close(); }
 });
 
@@ -50,7 +50,7 @@ test('checks reload after browser back to another result', async () => {
     await page.goBack(); await page.waitForTimeout(150);
     await page.goBack();                                       // A 결과 기록으로 돌아감 (답은 B)
     await page.waitForSelector('.hero');
-    const st = await page.evaluate(() => ({ date: window.__app.state.ans.date, n: Object.values(window.__app.state.checks).filter(Boolean).length }));
+    const st = await page.evaluate(() => ({ date: window.__app.state.ans.date, n: Object.values(window.__app.state.prog.done).filter(Boolean).length }));
     assert.equal(st.date, 'spring');
     assert.equal(st.n, 0, 'B 결과인데 A의 체크가 남아 있음');
     assert.deepEqual(errors, []);

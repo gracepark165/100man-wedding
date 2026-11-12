@@ -10,11 +10,11 @@ test('checks persist', async () => {
   try {
     await planTab(page);
     const first = page.locator('.task input').first();
-    const i = await first.getAttribute('data-i');
+    const i = await first.getAttribute('data-id');
     await first.check();
     await page.reload();
     await planTab(page);
-    assert.equal(await page.locator(`.task input[data-i="${i}"]`).isChecked(), true);
+    assert.equal(await page.locator(`.task input[data-id="${i}"]`).isChecked(), true);
     assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 });
