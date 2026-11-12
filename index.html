@@ -488,7 +488,7 @@ function calc(a){
   var total=gross-support;
   var reserve=BUDGET-total;
   var st,over=total-BUDGET;
-  if(over>0)st={lv:'bad',label:'예산 초과',msg:'합계가 '+won(total)+'라 100만원보다 '+won(over)+' 많아요. 아래 방법으로 맞춰 보세요.'};
+  if(over>0)st={lv:'bad',label:'예산 초과',msg:'합계가 '+won(total)+'이라 100만원보다 '+won(over)+' 많아요. 아래 방법으로 맞춰 보세요.'};
   else if(reserve<5)st={lv:'warn',label:'빠듯해요',msg:'100만원 안에 들어오지만 예비비가 '+won(reserve)+'뿐이에요. 추가 비용이 생기면 넘칠 수 있어요.'};
   else if(reserve<15)st={lv:'ok',label:'맞출 수 있어요',msg:'합계 '+won(total)+'로 100만원 안에 들어와요. 예비비 '+won(reserve)+'가 남아요.'};
   else st={lv:'ok',label:'여유 있어요',msg:'합계 '+won(total)+'로 100만원 안에 들어와요. 예비비 '+won(reserve)+'가 남아요.'};
@@ -517,7 +517,7 @@ var SUPPORT_URL='https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_
 function coachTasks(c){
   var pub=c.reg.v==='seoul'&&c.ven.v==='public',res=c.res?c.res.v:'';
   var L=[];
-  if(c.over>0)L.push({id:'budget',m:null,lab:'',t:'예산부터 맞춰요',d:'',why:'합계가 '+won(c.total)+'라 100만원보다 '+won(c.over)+'만큼 많아요. 장소와 날짜를 정하기 전에 규모를 먼저 맞춰야 해요.',act:{type:'tab',tab:'budget',label:'줄이는 방법 보기'}});
+  if(c.over>0)L.push({id:'budget',m:null,lab:'',t:'예산부터 맞춰요',d:'',why:'합계가 '+won(c.total)+'이라 100만원보다 '+won(c.over)+'만큼 많아요. 장소와 날짜를 정하기 전에 규모를 먼저 맞춰야 해요.',act:{type:'tab',tab:'budget',label:'줄이는 방법 보기'}});
   if(pub&&res==='u')L.push({id:'res-check',m:null,lab:'',t:'비품비 지원 자격 확인하기',d:'',why:'두 분 중 한 분이 서울에 주민등록이 되어 있으면 최대 100만원을 지원받아요. 주민등록 주소부터 확인해요.',act:{type:'q',key:'res',label:'거주지 다시 답하기'}});
   L.push({id:'share',m:3,lab:'3개월',t:'규모와 100만원 원칙을 양가에 먼저 공유하기',d:'하객 범위와 식사 방식, 직접 해결할 부분을 함께 정해요'});
   if(pub)L.push({id:'consult',m:6,lab:'6개월',t:'서울시 공공예식장 상담 신청하기',d:'상담 후 협력업체를 통해 예약신청서를 내야 확정돼요',
@@ -818,12 +818,12 @@ function viewCoach(c){
   var tasks=coachTasks(c),o=coachOrder(tasks,state.prog),N=tasks.length,n=o.done.length,x=o.todo[0],card;
   var prog='<span class="coach-prog">완료 '+n+' / '+N+'</span>';
   if(!x){
-    card='<section class="coach"><div class="coach-top"><span class="coach-eye">지금 할 일</span>'+prog+'</div><h2>준비를 모두 마쳤어요. 축하해요!</h2></section>';
+    card='<section class="coach" aria-live="polite"><div class="coach-top"><span class="coach-eye">지금 할 일</span>'+prog+'</div><h2>준비를 모두 마쳤어요. 축하해요!</h2></section>';
   }else{
     var act='';
     if(x.act&&x.act.type==='link')act='<a class="btn ghost coach-act" href="'+esc(x.act.href)+'" target="_blank" rel="noopener">'+x.act.label+' ↗</a>';
     else if(x.act)act='<button class="btn ghost coach-act" data-a="cact" data-id="'+x.id+'">'+x.act.label+'</button>';
-    card='<section class="coach"><div class="coach-top"><span class="coach-eye">지금 할 일</span>'+prog+'</div>'+
+    card='<section class="coach" aria-live="polite"><div class="coach-top"><span class="coach-eye">지금 할 일</span>'+prog+'</div>'+
      (x.m>0&&x.dd<0?'<span class="coach-late">늦었어요, 오늘 바로 해요</span>':'')+
      '<h2>'+x.t+'</h2><p class="coach-why"><b>왜 지금?</b> '+x.why+'</p>'+
      '<div class="coach-btns">'+act+'<button class="btn" data-a="cdone" data-id="'+x.id+'">했어요 ✓</button></div>'+
@@ -842,9 +842,23 @@ function viewCoach(c){
 }
 function refreshCoach(){
   var c=calc(state.ans),w=document.getElementById('coachwrap');
+  /* 다시 그린 뒤 키보드 위치를 되살린다: 같은 컨트롤, 없으면 새 카드 제목 */
+  var ae=document.activeElement,fa=ae&&ae.getAttribute&&ae.getAttribute('data-a'),fid=ae&&ae.getAttribute&&ae.getAttribute('data-id'),inW=w&&ae&&w.contains(ae);
   if(w){var d=w.querySelector('details'),op=d&&d.open;w.innerHTML=viewCoach(c);if(op)w.querySelector('details').open=true}
+  if(inW){
+    var sel=fa?'[data-a="'+fa+'"][data-id="'+fid+'"]':(fid?'input[data-id="'+fid+'"]':null),tg=sel&&w.querySelector(sel);
+    if(!tg){tg=w.querySelector('.coach h2');if(tg)tg.setAttribute('tabindex','-1')}
+    if(tg)tg.focus({preventScroll:true});
+  }
+  /* 일정 탭은 다시 그리지 않고 체크와 진행 숫자만 맞춘다 (포커스와 캘린더 안내 유지) */
   var pl=screen.querySelector('[data-panel=plan]');
-  if(pl)pl.innerHTML=panelPlan(c);
+  if(pl){
+    var ins=pl.querySelectorAll('input[data-id]'),n=0;
+    for(var i=0;i<ins.length;i++){var on=!!state.prog.done[ins[i].getAttribute('data-id')];ins[i].checked=on;if(on)n++;var row=ins[i].closest('.task');if(row)row.classList.toggle('done',on)}
+    var tx=document.getElementById('pgtext'),bar=document.getElementById('pgbar');
+    if(tx)tx.textContent=n+' / '+ins.length+' 완료';
+    if(bar)bar.style.width=(ins.length?n/ins.length*100:0)+'%';
+  }
 }
 function viewResult(){
   var c=calc(state.ans);
@@ -938,7 +952,13 @@ function render(fromHist){
 function finish(keep){
   state.edit=false;
   if(!keep)state.tab='budget';
-  state.prog=loadProg(state.ans);
+  /* 답을 고쳐 새 조합이 되면, 그 조합 기록이 없을 때 지금까지의 기록을 이어 쓴다 */
+  var np=loadProg(state.ans),had=Object.keys(state.prog.done).length||state.prog.skip.length;
+  if(had&&!Object.keys(np.done).length&&!np.skip.length){
+    np={done:{},skip:state.prog.skip.slice()};for(var k in state.prog.done)np.done[k]=true;
+    saveProg(state.ans,np);
+  }
+  state.prog=np;
   state.view='load';render();
   loadTimer=setTimeout(function(){state.view='result';state.lock=false;render();if(!keep)track('result')},keep?350:800);
 }
@@ -1005,7 +1025,7 @@ document.addEventListener('click',function(e){
   }
   else if(a==='tab')setTab(t.getAttribute('data-tab'));
   else if(a==='edit'){state.view='q';state.step=0;state.edit=false;state.lock=false;state.ack='';render()}
-  else if(a==='reset'){state.ans={};state.view='intro';state.step=0;state.edit=false;state.lock=false;state.ack='';render()}
+  else if(a==='reset'){state.ans={};state.prog={done:{},skip:[]};state.view='intro';state.step=0;state.edit=false;state.lock=false;state.ack='';render()}
 });
 document.addEventListener('change',function(e){
   var el=e.target;
