@@ -192,6 +192,27 @@ ul{padding:0;list-style:none}
 
 .vcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}
 .apply .btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.coach{margin-top:16px;padding:16px 18px;border-radius:16px;background:var(--surface);border:2px solid var(--ink);display:grid;gap:8px}
+.coach-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+.coach-eye{font-weight:600;color:var(--accent-text)}
+.coach-prog{font-variant-numeric:tabular-nums}
+.coach h2{margin:0;font-size:20px;line-height:1.35}
+.coach-late{justify-self:start;font-size:12px;font-weight:600;padding:2px 10px;border-radius:99px;background:var(--bad-soft);color:var(--bad)}
+.coach-why{margin:0;font-size:14px;color:var(--fg)}
+.coach-why b{color:var(--accent-text);font-weight:600}
+.coach-btns{display:flex;flex-wrap:wrap;gap:8px}
+.coach-btns .btn{flex:1 1 140px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.coach-skip{justify-self:start;min-height:44px;padding:0;border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline}
+.coach-all{margin-top:10px;padding:12px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.coach-all summary{min-height:28px;cursor:pointer;font-weight:600}
+.coach-all h3{margin:14px 0 4px;font-size:13px;color:var(--muted)}
+.coach-all ul{list-style:none;margin:0;padding:0}
+.coach-all li label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;cursor:pointer}
+.coach-all li input{width:20px;height:20px;margin:2px 0 0;flex:none}
+.coach-all li .t{display:block}
+.coach-all li .w{display:block;font-size:12px;color:var(--muted)}
+.coach-all li.done{opacity:.55}
+.coach-all li.done .t{text-decoration:line-through}
 .pv-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:10px;display:grid;gap:4px}
 .pv-card h3{margin:0;font-size:16px}
 .pv-card .pv-gu{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
@@ -784,6 +805,40 @@ function applyCard(c){
 }
 /* 방문 통계: GoatCounter가 있을 때만 센다. 개인정보는 보내지 않는다 */
 function track(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,event:true})}catch(err){}}
+/* 지금 할 일 카드 + 전체 준비 순서 */
+function coachDue(x){return x.m==null?'바로':(x.m===0?'예식일 전후':fmtShort(x.due)+'까지')}
+function viewCoach(c){
+  var tasks=coachTasks(c),o=coachOrder(tasks,state.prog),N=tasks.length,n=o.done.length,x=o.todo[0],card;
+  var prog='<span class="coach-prog">완료 '+n+' / '+N+'</span>';
+  if(!x){
+    card='<section class="coach"><div class="coach-top"><span class="coach-eye">지금 할 일</span>'+prog+'</div><h2>준비를 모두 마쳤어요. 축하해요!</h2></section>';
+  }else{
+    var act='';
+    if(x.act&&x.act.type==='link')act='<a class="btn ghost coach-act" href="'+esc(x.act.href)+'" target="_blank" rel="noopener">'+x.act.label+' ↗</a>';
+    else if(x.act)act='<button class="btn ghost coach-act" data-a="cact" data-id="'+x.id+'">'+x.act.label+'</button>';
+    card='<section class="coach"><div class="coach-top"><span class="coach-eye">지금 할 일</span>'+prog+'</div>'+
+     (x.m>0&&x.dd<0?'<span class="coach-late">늦었어요, 오늘 바로 해요</span>':'')+
+     '<h2>'+x.t+'</h2><p class="coach-why"><b>왜 지금?</b> '+x.why+'</p>'+
+     '<div class="coach-btns">'+act+'<button class="btn" data-a="cdone" data-id="'+x.id+'">했어요 ✓</button></div>'+
+     '<button class="coach-skip" data-a="cskip" data-id="'+x.id+'">건너뛰기</button></section>';
+  }
+  var G=[['now','지금'],['month','이번 달'],['later','나중에']],D=state.prog.done;
+  var list=G.map(function(g){
+    var rows=o.todo.concat(o.done).filter(function(t){return coachGroup(t)===g[0]});
+    if(!rows.length)return '';
+    rows.sort(function(a,b){return (D[a.id]?1:0)-(D[b.id]?1:0)});
+    return '<h3>'+g[1]+'</h3><ul>'+rows.map(function(t){
+      return '<li class="'+(D[t.id]?'done':'')+'"><label><input type="checkbox" data-id="'+t.id+'"'+(D[t.id]?' checked':'')+'><span><span class="t">'+t.t+'</span><span class="w">'+coachDue(t)+'</span></span></label></li>';
+    }).join('')+'</ul>';
+  }).join('');
+  return card+'<details class="coach-all"><summary>전체 준비 순서 보기 (완료 '+n+' / '+N+')</summary>'+list+'</details>';
+}
+function refreshCoach(){
+  var c=calc(state.ans),w=document.getElementById('coachwrap');
+  if(w){var d=w.querySelector('details'),op=d&&d.open;w.innerHTML=viewCoach(c);if(op)w.querySelector('details').open=true}
+  var pl=screen.querySelector('[data-panel=plan]');
+  if(pl)pl.innerHTML=panelPlan(c);
+}
 function viewResult(){
   var c=calc(state.ans);
   var months=c.days<30?'1개월 미만':'약 '+Math.round(c.days/30.44)+'개월';
@@ -798,6 +853,7 @@ function viewResult(){
    '<div class="h-grid">'+chg('date','시기',c.d.label)+chg('region','지역',c.reg.label+' '+c.sub.label)+(c.res?chg('res','거주지',c.res.label):'')+chg('guests','하객',c.gl)+chg('venue','장소',c.ven.label)+chg('meal','식사',c.meal.label)+
    '<div><span class="chg" style="cursor:default;background:none"><span class="k">총 예산</span><span class="v">100만원 (식대 포함)</span></span></div></div>'+
    '<p class="h-tip">항목을 누르면 그것만 바꿀 수 있어요.</p></div></div>'+
+   '<div id="coachwrap">'+viewCoach(c)+'</div>'+
    '<div class="tabs" role="tablist">'+tabs+'</div>'+
    pn('budget',panelBudget(c))+pn('venue',panelVenue(c))+pn('plan',panelPlan(c))+
    applyCard(c)+
@@ -924,6 +980,17 @@ document.addEventListener('click',function(e){
   else if(a==='share'){track('share');shareLink()}
   else if(a==='apply')track('apply');
   else if(a==='ics')downloadIcs();
+  else if(a==='cdone'||a==='cskip'){
+    var cid=t.getAttribute('data-id');
+    if(a==='cdone')state.prog.done[cid]=true;
+    else{state.prog.skip=state.prog.skip.filter(function(k){return k!==cid});state.prog.skip.push(cid)}
+    saveProg(state.ans,state.prog);track(a==='cdone'?'done':'skip');refreshCoach();
+  }
+  else if(a==='cact'){
+    var task=coachTasks(calc(state.ans)).filter(function(k){return k.id===t.getAttribute('data-id')})[0];
+    if(task&&task.act&&task.act.type==='tab'){setTab(task.act.tab);var tb=screen.querySelector('.tabs');if(tb)tb.scrollIntoView({block:'start'})}
+    else if(task&&task.act&&task.act.type==='q'){state.view='q';state.edit=true;state.ack='';state.lock=false;state.step=steps().indexOf(task.act.key);render()}
+  }
   else if(a==='copy'){
     var ta=document.getElementById('consult'),msg=document.getElementById('copymsg');
     var fb=function(){if(ta){ta.focus();ta.select()}if(msg)msg.textContent='선택했어요. 길게 눌러 복사하세요.'};
@@ -935,17 +1002,11 @@ document.addEventListener('click',function(e){
 });
 document.addEventListener('change',function(e){
   var el=e.target;
-  if(!el.matches||!el.matches('.task input'))return;
+  if(!el.matches||!el.matches('input[data-id]'))return;
   var id=el.getAttribute('data-id');
   if(el.checked)state.prog.done[id]=true;else delete state.prog.done[id];
   saveProg(state.ans,state.prog);
-  var row=el.closest('.task');
-  if(row)row.classList.toggle('done',el.checked);
-  var all=screen.querySelectorAll('.task input'),n=0;
-  for(var i=0;i<all.length;i++)if(all[i].checked)n++;
-  var tx=document.getElementById('pgtext'),bar=document.getElementById('pgbar');
-  if(tx)tx.textContent=n+' / '+all.length+' 완료';
-  if(bar)bar.style.width=(n/all.length*100)+'%';
+  refreshCoach();
 });
 
 /* 테스트용 연결부: 브라우저 테스트가 순수 함수를 직접 부를 때 쓴다 */
