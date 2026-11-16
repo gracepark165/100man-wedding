@@ -41,6 +41,23 @@
 
 값을 바꾼 뒤에는 `python3 src/build.py`로 `index.html`을 다시 만들고 커밋하세요.
 
+### 지원 제도 정보 고치기 (`src/support.json`)
+
+- 지원금은 합계에서 빼지 않고 "지원이 확정되면 …" 시나리오로만 보여 줍니다.
+- `years`에 연도별 `apply`(신청 기간), `checked`(공고를 직접 확인한 날짜), `url`(공식 공고)을 넣습니다.
+  - `checked`가 있는 연도만 "{연도}년 공고 기준"으로 표시됩니다.
+  - 없으면 "공고 확인 전"으로 표시됩니다.
+- `eligibleItems`는 지원 대상 품목 키입니다. 확인 전에는 `decor`(장소 장식)만 둡니다.
+
+### 예산 근거 고치기 (`src/costs.json`)
+
+- 예산 줄마다 근거를 담습니다.
+  - 키: `rent, meal, decor, staff, dress, makeup, photo, flower, ring, card, register`
+  - `basis`: `공식`, `보도`, `견적`, `예시` 중 하나
+  - 그 밖에 `src`(출처), `url`, `checked`(확인일), `assume`(가정), `required`(필수 여부)
+- `basis`가 `예시`이거나 `checked`가 비어 있으면 "미확인 비용"으로 묶여 따로 표시됩니다.
+- 키가 빠지거나 `basis` 값이 틀리면 빌드가 실패합니다.
+
 ## 테스트
 
 `npm test` — 사이트를 다시 빌드하고 휴대폰 크기 브라우저(Playwright)로 흐름을 눌러 확인합니다.
