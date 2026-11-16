@@ -164,6 +164,13 @@ ul{padding:0;list-style:none}
 .h-grid .chg .k{font-size:12px;color:var(--muted)}
 .h-grid .chg .v{font-weight:600;overflow-wrap:anywhere}
 .h-grid .chg .e{font-size:12px;color:var(--accent-text);font-weight:600}
+.unver{font-size:13px;color:var(--warn);margin:0 0 4px}
+.basis{margin-top:4px;font-size:12px}
+.basis summary{cursor:pointer;list-style:none;min-height:24px}
+.basis summary::-webkit-details-marker{display:none}
+.basis-tag{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--surface-2);color:var(--muted)}
+.basis-tag.un{background:var(--warn-soft);color:var(--warn)}
+.basis p{margin:4px 0 0;color:var(--muted)}
 .cut-warn{display:block;font-size:12px;color:var(--warn);margin-top:2px}
 .h-scn{font-size:13px;color:var(--accent-text);font-weight:600;margin-top:10px}
 .scenario{margin-top:12px;padding:14px 16px;border-radius:12px;border:1px dashed var(--accent);background:var(--accent-soft);display:grid;gap:6px}
@@ -275,6 +282,9 @@ details li span{display:block;color:var(--muted);font-size:13px}
 var CONFIG={"formUrl": "", "formSummaryEntry": "", "goatcounter": ""};
 /* 지원 제도 (src/support.json). 확인되지 않은 지원은 합계에서 빼지 않고 시나리오로만 보여준다 */
 var SUPPORT={"name": "서울시 '더 아름다운 결혼식' 비품비 지원", "max": 100, "years": {"2026": {"apply": "2026-05-28 ~ 2026-11-28", "checked": "", "url": "https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=5131BE613817CADFE063A60221622406"}}, "eligibleItems": ["decor"], "eligibleNote": "협약업체 결제분만 지원돼요. 어떤 품목이 대상인지는 공고로 확인하세요."};
+/* 예산 줄별 근거 (src/costs.json). 예시이거나 확인일이 없으면 미확인 */
+var COSTS={"rent": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "고른 장소 유형의 대관료 예시. 공공예식장은 무료인 곳이 많아요", "required": true}, "meal": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "1인 단가 × 하객 수, 세부 지역 물가 반영", "required": true}, "decor": {"basis": "보도", "src": "세계일보 공공예식장 이용 증가 기사", "url": "https://www.segye.com/newsView/20251204515189", "checked": "2026-11-09", "assume": "공공예식장은 빈 공간이라 꽃·소품 장식이 필요해요. 보도된 165만~250만원 중 낮은 값", "required": true}, "staff": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "안내요원 1명당 5만원, 4시간 기준", "required": false}, "dress": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "드레스·예복 대여 최소 구성", "required": false}, "makeup": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "신랑·신부 메이크업과 헤어 1회", "required": false}, "photo": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "스냅 촬영 최소 구성", "required": false}, "flower": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "부케와 부토니에", "required": false}, "ring": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "간단한 커플링", "required": false}, "card": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "모바일 청첩장과 소량 인쇄", "required": false}, "register": {"basis": "공식", "src": "혼인신고 수수료 없음", "url": "", "checked": "", "assume": "구청 방문 신고", "required": true}};
+function isUnverified(cost){return !cost||cost.basis==='예시'||!cost.checked}
 var BUDGET=100; /* 만원 */
 
 var DATES=[
@@ -494,12 +504,14 @@ function calc(a){
   var supportScenario=canSup?Math.min(SUPPORT.max,eligibleAmt):0;
   var supportStatus=!canSup?null:(a.res==='u'?'unknown-residence':(yinfo&&yinfo.checked?'confirmed-notice':'unconfirmed'));
   var total=gross;
+  var unverifiedAmt=0;rows.forEach(function(r){if(isUnverified(COSTS[r.key]))unverifiedAmt+=r.amt});
   var reserve=BUDGET-total;
   var st,over=total-BUDGET;
   if(over>0)st={lv:'bad',label:'예산 초과',msg:'합계가 '+won(total)+'이라 100만원보다 '+won(over)+' 많아요. 아래 방법으로 맞춰 보세요.'};
   else if(reserve<5)st={lv:'warn',label:'빠듯해요',msg:'100만원 안에 들어오지만 예비비가 '+won(reserve)+'뿐이에요. 추가 비용이 생기면 넘칠 수 있어요.'};
   else if(reserve<15)st={lv:'ok',label:'맞출 수 있어요',msg:'합계 '+won(total)+'로 100만원 안에 들어와요. 예비비 '+won(reserve)+'가 남아요.'};
   else st={lv:'ok',label:'여유 있어요',msg:'합계 '+won(total)+'로 100만원 안에 들어와요. 예비비 '+won(reserve)+'가 남아요.'};
+  if(unverifiedAmt>0)st.msg+=' 예시 단가가 포함된 추정치예요.';
 
   var cuts=[];
   if(over>0){
@@ -521,7 +533,7 @@ function calc(a){
   if(alt){var sv=Math.round((meal.per-alt.per)*fm(sub)*g);if(sv>=3)tips.push({t:'식사를 '+alt.label+'(으)로 바꾸면',v:'-'+won(sv)})}
   if(reserve>0&&per>0){var extra=Math.floor(reserve/per);if(extra>=1)tips.push({t:'예비비를 쓰면 하객을 '+extra+'명 더 모실 수 있어요',v:'+'+extra+'명'})}
 
-  return {d:d,sub:sub,reg:reg,g:g,ven:ven,meal:meal,per:per,rows:rows,gross:gross,total:total,cutResult:cutResult,reserve:reserve,over:over,st:st,cuts:cuts,tips:tips,
+  return {d:d,sub:sub,reg:reg,g:g,ven:ven,meal:meal,per:per,rows:rows,gross:gross,total:total,unverifiedAmt:unverifiedAmt,cutResult:cutResult,reserve:reserve,over:over,st:st,cuts:cuts,tips:tips,
     wd:wd,today:today,days:days,gl:find('guests',a.guests,a).label,supportScenario:supportScenario,scenarioTotal:gross-supportScenario,supportStatus:supportStatus,supportYear:supportYear,eligibleAmt:eligibleAmt,res:find('res',a.res,a)};
 }
 
@@ -646,7 +658,7 @@ function panelBudget(c){
   var rows='';
   c.rows.forEach(function(r){
     var pct=Math.round(r.amt/BUDGET*100);
-    rows+='<li><div class="rl"><span class="rn">'+r.name+(r.note?'<small>'+r.note+'</small>':'')+'</span><span class="ra">'+won(r.amt)+'</span></div><div class="bar'+(r.main?' main':'')+(r.amt<=0?' zero':'')+'"><i style="width:'+Math.min(100,pct)+'%"></i></div></li>';
+    rows+='<li data-key="'+r.key+'"><div class="rl"><span class="rn">'+r.name+(r.note?'<small>'+r.note+'</small>':'')+'</span><span class="ra">'+won(r.amt)+'</span></div><div class="bar'+(r.main?' main':'')+(r.amt<=0?' zero':'')+'"><i style="width:'+Math.min(100,pct)+'%"></i></div>'+basisHtml(COSTS[r.key])+'</li>';
   });
   if(c.reg.v==='seoul'&&c.ven.v==='public'&&c.res&&c.res.v==='n')rows+='<li><div class="rl"><span class="rn">서울시 비품비 지원<small>서울 거주자가 아니면 비품비 지원 대상이 아니에요.</small></span><span class="ra">없음</span></div></li>';
   rows+='<li><div class="rl"><span class="rn">예비비<small>남은 금액</small></span><span class="ra">'+won(Math.max(0,c.reserve))+'</span></div><div class="bar'+(c.reserve<=0?' zero':'')+'"><i style="width:'+Math.min(100,Math.max(0,c.reserve))+'%"></i></div></li>';
@@ -660,11 +672,18 @@ function panelBudget(c){
   }
   var tips=c.tips.length?'<h2 class="sec">식대 조절 방법</h2><ul class="tips">'+c.tips.map(function(x){return '<li><span>'+x.t+'</span><b>'+x.v+'</b></li>'}).join('')+'</ul>':'';
   return '<div class="status '+(c.st.lv==='ok'?'':c.st.lv)+'"><span class="pill">'+c.st.label+'</span><p>'+c.st.msg+'</p></div>'+meter+
-   '<h2 class="sec">항목별 예상 금액</h2><ul class="rows">'+rows+'</ul>'+scenarioBox(c)+
+   '<h2 class="sec">항목별 예상 금액</h2>'+(c.unverifiedAmt>0?'<p class="unver">이 중 미확인 비용 '+won(c.unverifiedAmt)+' (예시 단가이거나 아직 확인하지 않은 금액)</p>':'')+'<ul class="rows">'+rows+'</ul>'+scenarioBox(c)+
    '<div class="total"><span>예산</span><span>100만원</span></div>'+
    '<p class="fine">대관료가 무료여도 장소 장식과 안내요원 비용은 따로 들어요. 신혼여행과 신혼집은 포함하지 않았어요.'+(c.supportStatus?' 지원금은 합계에 넣지 않았어요. 공고와 조건을 확인한 뒤에만 받을 수 있어요.':'')+'</p>'+cutHtml+tips;
 }
 
+function basisHtml(cost){
+  if(!cost)return '';
+  var tag=cost.basis==='예시'?'예시 단가':(cost.basis+(cost.checked?' · '+cost.checked:' · 확인 전'));
+  return '<details class="basis"><summary><span class="basis-tag'+(isUnverified(cost)?' un':'')+'">'+tag+'</span></summary>'+
+   '<p>'+(cost.required?'필수':'선택')+' · '+esc(cost.assume)+'</p>'+
+   (cost.src?'<p>출처: '+(cost.url?'<a href="'+esc(cost.url)+'" target="_blank" rel="noopener">'+esc(cost.src)+' ↗</a>':esc(cost.src))+'</p>':'')+'</details>';
+}
 function supportTag(c){
   return c.supportStatus==='unknown-residence'?'거주 조건 확인 필요':(c.supportStatus==='confirmed-notice'?c.supportYear+'년 공고 기준':'공고 확인 전');
 }

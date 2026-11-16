@@ -24,6 +24,15 @@ for y, v in sup['years'].items():
         assert k in v, f"support.json years.{y}에 '{k}'가 없습니다"
 assert '__SUPPORT__' in s
 s = s.replace('__SUPPORT__', json.dumps(sup, ensure_ascii=False).replace('</', '<\\/'))
+# 비용 근거: COSTS_JSON(테스트용 경로) 또는 src/costs.json. 예산 줄마다 하나씩 있어야 한다
+costs = json.loads(pathlib.Path(os.environ.get('COSTS_JSON') or (here / 'costs.json')).read_text(encoding='utf-8'))
+for k in ('rent', 'meal', 'decor', 'staff', 'dress', 'makeup', 'photo', 'flower', 'ring', 'card', 'register'):
+    assert k in costs, f"costs.json에 '{k}'가 없습니다"
+    for f in ('basis', 'src', 'url', 'checked', 'assume', 'required'):
+        assert f in costs[k], f"costs.json {k}에 '{f}'가 없습니다"
+    assert costs[k]['basis'] in ('공식', '보도', '견적', '예시'), f"costs.json {k}.basis는 공식/보도/견적/예시 중 하나여야 합니다"
+assert '__COSTS__' in s
+s = s.replace('__COSTS__', json.dumps(costs, ensure_ascii=False).replace('</', '<\\/'))
 # 운영 설정: CONFIG_JSON(테스트용) 또는 src/config.json
 cfg = json.loads(os.environ.get('CONFIG_JSON') or (here / 'config.json').read_text(encoding='utf-8'))
 for k in ('formUrl', 'formSummaryEntry', 'goatcounter'):

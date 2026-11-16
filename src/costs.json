@@ -1,0 +1,13 @@
+{
+ "rent":     {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "고른 장소 유형의 대관료 예시. 공공예식장은 무료인 곳이 많아요", "required": true},
+ "meal":     {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "1인 단가 × 하객 수, 세부 지역 물가 반영", "required": true},
+ "decor":    {"basis": "보도", "src": "세계일보 공공예식장 이용 증가 기사", "url": "https://www.segye.com/newsView/20251204515189", "checked": "2026-11-09", "assume": "공공예식장은 빈 공간이라 꽃·소품 장식이 필요해요. 보도된 165만~250만원 중 낮은 값", "required": true},
+ "staff":    {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "안내요원 1명당 5만원, 4시간 기준", "required": false},
+ "dress":    {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "드레스·예복 대여 최소 구성", "required": false},
+ "makeup":   {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "신랑·신부 메이크업과 헤어 1회", "required": false},
+ "photo":    {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "스냅 촬영 최소 구성", "required": false},
+ "flower":   {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "부케와 부토니에", "required": false},
+ "ring":     {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "간단한 커플링", "required": false},
+ "card":     {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "모바일 청첩장과 소량 인쇄", "required": false},
+ "register": {"basis": "공식", "src": "혼인신고 수수료 없음", "url": "", "checked": "", "assume": "구청 방문 신고", "required": true}
+}
