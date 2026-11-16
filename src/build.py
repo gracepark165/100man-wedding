@@ -14,6 +14,16 @@ for v in venues:
         assert k in v, f"{v.get('id', '?')}: '{k}' 필드가 없습니다"
 assert '__PUBLIC_VENUES__' in s
 s = s.replace('__PUBLIC_VENUES__', json.dumps(venues, ensure_ascii=False).replace('</', '<\\/'))
+# 지원 제도: SUPPORT_JSON(테스트용 경로) 또는 src/support.json
+sup = json.loads(pathlib.Path(os.environ.get('SUPPORT_JSON') or (here / 'support.json')).read_text(encoding='utf-8'))
+for k in ('name', 'max', 'years', 'eligibleItems', 'eligibleNote'):
+    assert k in sup, f"support.json에 '{k}'가 없습니다"
+assert isinstance(sup['years'], dict) and isinstance(sup['eligibleItems'], list)
+for y, v in sup['years'].items():
+    for k in ('apply', 'checked', 'url'):
+        assert k in v, f"support.json years.{y}에 '{k}'가 없습니다"
+assert '__SUPPORT__' in s
+s = s.replace('__SUPPORT__', json.dumps(sup, ensure_ascii=False).replace('</', '<\\/'))
 # 운영 설정: CONFIG_JSON(테스트용) 또는 src/config.json
 cfg = json.loads(os.environ.get('CONFIG_JSON') or (here / 'config.json').read_text(encoding='utf-8'))
 for k in ('formUrl', 'formSummaryEntry', 'goatcounter'):

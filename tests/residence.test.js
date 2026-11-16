@@ -31,9 +31,9 @@ test('support by residence', async () => {
   try {
     const r = await page.evaluate((B) => ['y', 'n', 'u'].map((res) => window.__app.calc({ ...B, res })), BASE);
     const [y, n, u] = r;
-    assert.equal(y.support, Math.min(100, y.gross));
-    assert.equal(n.support, 0); assert.equal(n.supportMaybe, 0);
-    assert.equal(u.support, 0); assert.ok(u.supportMaybe > 0); assert.equal(u.total, u.gross);
+    assert.ok(y.supportScenario > 0); assert.equal(y.total, y.gross);
+    assert.equal(n.supportStatus, null); assert.equal(n.supportScenario, 0);
+    assert.equal(u.supportStatus, 'unknown-residence'); assert.equal(u.total, u.gross);
     const steps = await page.evaluate((B) => [window.__app.steps(B), window.__app.steps({ ...B, region: 'gg' })], BASE);
     assert.deepEqual(steps[0], ['date', 'region', 'sub', 'res', 'guests', 'venue', 'meal']);
     assert.deepEqual(steps[1], ['date', 'region', 'sub', 'guests', 'venue', 'meal']);
@@ -41,7 +41,7 @@ test('support by residence', async () => {
 });
 
 test('budget rows by residence', async () => {
-  for (const [res, has, hasNot] of [['u', '조건 충족 시', null], ['n', '비품비 지원 대상이 아니에요', '-'], ['y', '서울시 비품비 지원', null]]) {
+  for (const [res, has, hasNot] of [['u', '거주 조건 확인 필요', null], ['n', '비품비 지원 대상이 아니에요', '-'], ['y', '지원이 확정되면', null]]) {
     const { browser, page, errors } = await open();
     try {
       await seoulResult(page, res);

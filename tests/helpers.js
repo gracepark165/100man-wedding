@@ -12,6 +12,11 @@ function buildTo(out, env = {}) {
   return out;
 }
 
+function runBuild(env) {
+  try { execFileSync('python3', [path.join(ROOT, 'src/build.py')], { env: { ...process.env, ...env }, stdio: 'pipe' }); return 0; }
+  catch (e) { return e.status || 1; }
+}
+
 async function open(opts = {}) {
   const browser = await chromium.launch();
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, acceptDownloads: true });
@@ -37,4 +42,4 @@ async function pick(page, n) {
 
 const heading = (page) => page.textContent('h1.q');
 
-module.exports = { open, pick, heading, fileUrl, buildTo, ROOT };
+module.exports = { open, pick, heading, fileUrl, buildTo, runBuild, ROOT };

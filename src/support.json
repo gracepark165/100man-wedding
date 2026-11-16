@@ -1,0 +1,9 @@
+{
+ "name": "서울시 '더 아름다운 결혼식' 비품비 지원",
+ "max": 100,
+ "years": {
+  "2026": {"apply": "2026-05-28 ~ 2026-11-28", "checked": "", "url": "https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=5131BE613817CADFE063A60221622406"}
+ },
+ "eligibleItems": ["decor"],
+ "eligibleNote": "협약업체 결제분만 지원돼요. 어떤 품목이 대상인지는 공고로 확인하세요."
+}
