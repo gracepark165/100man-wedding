@@ -50,3 +50,11 @@ test('korean particles after won', async () => {
     });
   }
 });
+
+test('basis and scenario link styling', () => at('?d=q1&r=seoul&s=gs&res=y&g=10&v=public&m=box', async (page) => {
+  const b = await page.$eval('li[data-key=meal] details.basis', (el) => { const c = getComputedStyle(el); return [c.borderTopWidth, c.backgroundColor]; });
+  assert.equal(b[0], '0px');
+  assert.equal(b[1], 'rgba(0, 0, 0, 0)');
+  const a = await page.$eval('.scenario a.btn', (el) => { const c = getComputedStyle(el); return [c.textDecorationLine, c.justifyContent]; });
+  assert.deepEqual(a, ['none', 'center']);
+}));
