@@ -52,7 +52,8 @@
 ### 예산 근거 고치기 (`src/costs.json`)
 
 - 예산 줄마다 근거를 담습니다.
-  - 키: `rent, meal, decor, staff, dress, makeup, photo, flower, ring, card, register`
+  - 키: `rent, meal, decor, decor_other, staff, dress, makeup, photo, flower, ring, card, register` (`decor`는 공공예식장 장식, `decor_other`는 그 밖의 장소 장식)
+  - 앱에 예산 줄을 새로 만들면 그 키도 넣어야 해요. 빠지면 빌드가 실패해요.
   - `basis`: `공식`, `보도`, `견적`, `예시` 중 하나
   - 그 밖에 `src`(출처), `url`, `checked`(확인일), `assume`(가정), `required`(필수 여부)
 - `basis`가 `예시`이거나 `checked`가 비어 있으면 "미확인 비용"으로 묶여 따로 표시됩니다.

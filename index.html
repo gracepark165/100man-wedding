@@ -283,7 +283,7 @@ var CONFIG={"formUrl": "", "formSummaryEntry": "", "goatcounter": ""};
 /* 지원 제도 (src/support.json). 확인되지 않은 지원은 합계에서 빼지 않고 시나리오로만 보여준다 */
 var SUPPORT={"name": "서울시 '더 아름다운 결혼식' 비품비 지원", "max": 100, "years": {"2026": {"apply": "2026-05-28 ~ 2026-11-28", "checked": "", "url": "https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=5131BE613817CADFE063A60221622406"}}, "eligibleItems": ["decor"], "eligibleNote": "협약업체 결제분만 지원돼요. 어떤 품목이 대상인지는 공고로 확인하세요."};
 /* 예산 줄별 근거 (src/costs.json). 예시이거나 확인일이 없으면 미확인 */
-var COSTS={"rent": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "고른 장소 유형의 대관료 예시. 공공예식장은 무료인 곳이 많아요", "required": true}, "meal": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "1인 단가 × 하객 수, 세부 지역 물가 반영", "required": true}, "decor": {"basis": "보도", "src": "세계일보 공공예식장 이용 증가 기사", "url": "https://www.segye.com/newsView/20251204515189", "checked": "2026-11-09", "assume": "공공예식장은 빈 공간이라 꽃·소품 장식이 필요해요. 보도된 165만~250만원 중 낮은 값", "required": true}, "staff": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "안내요원 1명당 5만원, 4시간 기준", "required": false}, "dress": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "드레스·예복 대여 최소 구성", "required": false}, "makeup": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "신랑·신부 메이크업과 헤어 1회", "required": false}, "photo": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "스냅 촬영 최소 구성", "required": false}, "flower": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "부케와 부토니에", "required": false}, "ring": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "간단한 커플링", "required": false}, "card": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "모바일 청첩장과 소량 인쇄", "required": false}, "register": {"basis": "공식", "src": "혼인신고 수수료 없음", "url": "", "checked": "", "assume": "구청 방문 신고", "required": true}};
+var COSTS={"rent": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "고른 장소 유형의 대관료 예시. 공공예식장은 무료인 곳이 많아요", "required": true}, "meal": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "1인 단가 × 하객 수, 세부 지역 물가 반영", "required": true}, "decor": {"basis": "보도", "src": "세계일보 공공예식장 이용 증가 기사", "url": "https://www.segye.com/newsView/20251204515189", "checked": "2026-11-09", "assume": "공공예식장은 빈 공간이라 꽃·소품 장식이 필요해요. 보도된 165만~250만원 중 낮은 값", "required": true}, "decor_other": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "기본 장식이 있는 장소라 적게 잡은 예시", "required": false}, "staff": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "안내요원 1명당 5만원, 4시간 기준", "required": false}, "dress": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "드레스·예복 대여 최소 구성", "required": false}, "makeup": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "신랑·신부 메이크업과 헤어 1회", "required": false}, "photo": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "스냅 촬영 최소 구성", "required": false}, "flower": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "부케와 부토니에", "required": false}, "ring": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "간단한 커플링", "required": false}, "card": {"basis": "예시", "src": "", "url": "", "checked": "", "assume": "모바일 청첩장과 소량 인쇄", "required": false}, "register": {"basis": "공식", "src": "혼인신고 수수료 없음", "url": "", "checked": "", "assume": "구청 방문 신고", "required": true}};
 function isUnverified(cost){return !cost||cost.basis==='예시'||!cost.checked}
 var BUDGET=100; /* 만원 */
 
@@ -491,7 +491,7 @@ function calc(a){
   ];
   var decor={public:165,restaurant:5,outdoor:10,chapel:5}[ven.v];
   var decorNote=(ven.v==='restaurant'||ven.v==='chapel')?'기본 장식이 있어 적게 잡았어요':(ven.v==='public'?'빈 공간이라 꽃과 소품이 필요해요. 견적은 165만~250만원 수준이라 낮은 쪽으로 계산했어요':'빈 공간이라 꽃과 소품이 필요해요');
-  rows.push({key:'decor',name:'장소 장식 (꽃·소품)',note:decorNote,amt:decor,cut:{label:'조화와 직접 만든 소품으로 꾸미기',save:Math.round(decor/2),affects:'decor'}});
+  rows.push({key:'decor',costKey:ven.v==='public'?'decor':'decor_other',name:'장소 장식 (꽃·소품)',note:decorNote,amt:decor,cut:{label:'조화와 직접 만든 소품으로 꾸미기',save:Math.round(decor/2),affects:'decor'}});
   var staffN=g<=10?1:(g<=30?2:3),staffAmt=staffN*5;
   rows.push({key:'staff',name:'안내요원 알바비',note:staffN+'명 × 5만원 (4시간 기준)',amt:staffAmt,cut:{label:'가족·지인에게 안내 부탁하기',save:staffAmt}});
   FIXED.forEach(function(f){rows.push({key:f.key,name:f.name,amt:f.amt,cut:f.cut})});
@@ -504,13 +504,13 @@ function calc(a){
   var supportScenario=canSup?Math.min(SUPPORT.max,eligibleAmt):0;
   var supportStatus=!canSup?null:(a.res==='u'?'unknown-residence':(yinfo&&yinfo.checked?'confirmed-notice':'unconfirmed'));
   var total=gross;
-  var unverifiedAmt=0;rows.forEach(function(r){if(isUnverified(COSTS[r.key]))unverifiedAmt+=r.amt});
+  var unverifiedAmt=0;rows.forEach(function(r){if(isUnverified(COSTS[r.costKey||r.key]))unverifiedAmt+=r.amt});
   var reserve=BUDGET-total;
   var st,over=total-BUDGET;
   if(over>0)st={lv:'bad',label:'예산 초과',msg:'합계가 '+won(total)+'이라 100만원보다 '+won(over)+' 많아요. 아래 방법으로 맞춰 보세요.'};
   else if(reserve<5)st={lv:'warn',label:'빠듯해요',msg:'100만원 안에 들어오지만 예비비가 '+won(reserve)+'뿐이에요. 추가 비용이 생기면 넘칠 수 있어요.'};
-  else if(reserve<15)st={lv:'ok',label:'맞출 수 있어요',msg:'합계 '+won(total)+'로 100만원 안에 들어와요. 예비비 '+won(reserve)+'가 남아요.'};
-  else st={lv:'ok',label:'여유 있어요',msg:'합계 '+won(total)+'로 100만원 안에 들어와요. 예비비 '+won(reserve)+'가 남아요.'};
+  else if(reserve<15)st={lv:'ok',label:'맞출 수 있어요',msg:'합계 '+won(total)+'으로 100만원 안에 들어와요. 예비비 '+won(reserve)+'이 남아요.'};
+  else st={lv:'ok',label:'여유 있어요',msg:'합계 '+won(total)+'으로 100만원 안에 들어와요. 예비비 '+won(reserve)+'이 남아요.'};
   if(unverifiedAmt>0)st.msg+=' 예시 단가가 포함된 추정치예요.';
 
   var cuts=[];
@@ -550,7 +550,7 @@ function coachTasks(c){
   var pub=c.reg.v==='seoul'&&c.ven.v==='public',res=c.res?c.res.v:'';
   var L=[];
   if(c.over>0)L.push({id:'budget',days:null,t:'예산부터 맞춰요',d:'',why:'지원 전 합계가 '+won(c.total)+'이라 100만원보다 '+won(c.over)+'만큼 많아요.'+(c.supportStatus?' 지원이 확정되면 '+won(c.scenarioTotal)+'이에요.':'')+' 장소와 날짜를 정하기 전에 규모를 먼저 맞춰야 해요.',act:{type:'tab',tab:'budget',label:'줄이는 방법 보기'}});
-  if(pub&&res==='u')L.push({id:'res-check',days:null,t:'비품비 지원 자격 확인하기',d:'',why:'두 분 중 한 분이 서울에 주민등록이 되어 있으면 최대 100만원을 지원받아요. 주민등록 주소부터 확인해요.',act:{type:'q',key:'res',label:'거주지 다시 답하기'}});
+  if(pub&&res==='u')L.push({id:'res-check',days:null,t:'비품비 지원 자격 확인하기',d:'',why:'두 분 중 한 분이 서울에 주민등록이 되어 있으면 비품비를 최대 100만원까지 지원받을 수 있을지도 몰라요. 주민등록 주소와 공고의 지원 조건부터 확인해요.',act:{type:'q',key:'res',label:'거주지 다시 답하기'}});
   L.push({id:'share',days:90,t:'규모와 100만원 원칙을 양가에 먼저 공유하기',d:'하객 범위와 식사 방식, 직접 해결할 부분을 함께 정해요'});
   if(pub)L.push({id:'consult',days:180,t:'서울시 공공예식장 상담 신청하기',d:'상담 후 협력업체를 통해 예약신청서를 내야 확정돼요',
     why:(c.d.peak?'봄·가을 주말은 6개월 전에 마감되기도 해요.':'상담 후 협력업체 계약까지 시간이 걸려요.')+' 예식까지 '+c.days+'일 남았어요.',
@@ -561,7 +561,7 @@ function coachTasks(c){
    {id:'invite',days:30,t:'모바일 청첩장 보내고 참석 여부 받기',d:'식대는 인원 기준이라 참석 확인이 중요해요'},
    {id:'staff',days:21,t:'안내요원 구하고 꽃·장식 준비하기',d:'안내 담당의 시간과 비용을 정하고, 꽃과 소품은 직접 준비할지 주문할지 정해요'},
    {id:'count',days:14,t:'식사 인원 최종 전달, 식순과 진행자 정하기',d:'사회와 축가는 지인에게 부탁하면 비용이 들지 않아요'});
-  if(pub&&res==='y')L.push({id:'support',days:7,t:'비품비 지원 신청하기 (예식 1주 전까지)',d:'협약 카드 바우처로 받아 협약업체 결제에 써요',why:'예식 1주 전까지 온라인으로 신청해야 받을 수 있어요. 국민행복카드가 필요해요.',act:{type:'link',href:supportUrl(c),label:'지원 신청 바로가기'}});
+  if(pub&&res==='y')L.push({id:'support',days:7,t:(c.supportStatus==='confirmed-notice'?'비품비 지원 신청하기 (예식 1주 전까지)':'비품비 지원 공고 확인하고 신청하기'),d:'협약 카드 바우처로 받아 협약업체 결제에 써요',why:(c.supportStatus==='confirmed-notice'?c.supportYear+'년 공고 기준으로 예식 1주 전까지 온라인으로 신청해야 받을 수 있어요. 국민행복카드가 필요해요.':c.supportYear+'년 공고는 아직 확인 전이에요. 공고에서 신청 기간과 조건을 확인한 뒤 기간 안에 신청해요.'),act:{type:'link',href:supportUrl(c),label:'지원 신청 바로가기'}});
   L.push({id:'final',days:7,t:'최종 점검 (소품, 반입 음식, 우천 대안)',d:'당일 연락 담당과 짐 옮길 사람을 정해요'},
    {id:'register',days:0,t:'혼인신고하기 (구청)',d:'신고를 마쳐야 법적으로 부부가 돼요. 편한 날에 하세요'});
   var ACT={venue:{type:'tab',tab:'venue',label:'장소 후보 보기'}};
@@ -658,7 +658,7 @@ function panelBudget(c){
   var rows='';
   c.rows.forEach(function(r){
     var pct=Math.round(r.amt/BUDGET*100);
-    rows+='<li data-key="'+r.key+'"><div class="rl"><span class="rn">'+r.name+(r.note?'<small>'+r.note+'</small>':'')+'</span><span class="ra">'+won(r.amt)+'</span></div><div class="bar'+(r.main?' main':'')+(r.amt<=0?' zero':'')+'"><i style="width:'+Math.min(100,pct)+'%"></i></div>'+basisHtml(COSTS[r.key])+'</li>';
+    rows+='<li data-key="'+r.key+'"><div class="rl"><span class="rn">'+r.name+(r.note?'<small>'+r.note+'</small>':'')+'</span><span class="ra">'+won(r.amt)+'</span></div><div class="bar'+(r.main?' main':'')+(r.amt<=0?' zero':'')+'"><i style="width:'+Math.min(100,pct)+'%"></i></div>'+basisHtml(COSTS[r.costKey||r.key])+'</li>';
   });
   if(c.reg.v==='seoul'&&c.ven.v==='public'&&c.res&&c.res.v==='n')rows+='<li><div class="rl"><span class="rn">서울시 비품비 지원<small>서울 거주자가 아니면 비품비 지원 대상이 아니에요.</small></span><span class="ra">없음</span></div></li>';
   rows+='<li><div class="rl"><span class="rn">예비비<small>남은 금액</small></span><span class="ra">'+won(Math.max(0,c.reserve))+'</span></div><div class="bar'+(c.reserve<=0?' zero':'')+'"><i style="width:'+Math.min(100,Math.max(0,c.reserve))+'%"></i></div></li>';
@@ -668,7 +668,7 @@ function panelBudget(c){
     cutHtml='<h2 class="sec">이렇게 줄이면 맞출 수 있어요</h2><ul class="tips">'+c.cuts.map(function(x){
       var warn=c.supportStatus&&x.affects&&SUPPORT.eligibleItems.indexOf(x.affects)>=0?'<small class="cut-warn">직접 준비하면 비품비 지원 대상에서 빠질 수 있어요</small>':'';
       return '<li><span>'+x.label+warn+'</span><b>-'+won(x.save)+'</b></li>'}).join('')+'</ul>'+
-     (saved<c.over?'<p class="fine">그래도 '+won(c.over-saved)+' 부족해요. 하객 수나 식사 방식을 함께 줄여야 해요.</p>':(c.cutResult.scenario!=null?'<p class="fine">모두 적용하면 지원 전 약 '+won(c.cutResult.gross)+', 지원 확정 시 약 '+won(c.cutResult.scenario)+'이에요.</p>':'<p class="fine">모두 적용하면 합계가 약 '+won(c.cutResult.gross)+'가 돼요.</p>'));
+     (saved<c.over?'<p class="fine">그래도 '+won(c.over-saved)+' 부족해요. 하객 수나 식사 방식을 함께 줄여야 해요.</p>':(c.cutResult.scenario!=null?'<p class="fine">모두 적용하면 지원 전 약 '+won(c.cutResult.gross)+', 지원 확정 시 약 '+won(c.cutResult.scenario)+'이에요.</p>':'<p class="fine">모두 적용하면 합계가 약 '+won(c.cutResult.gross)+'이 돼요.</p>'));
   }
   var tips=c.tips.length?'<h2 class="sec">식대 조절 방법</h2><ul class="tips">'+c.tips.map(function(x){return '<li><span>'+x.t+'</span><b>'+x.v+'</b></li>'}).join('')+'</ul>':'';
   return '<div class="status '+(c.st.lv==='ok'?'':c.st.lv)+'"><span class="pill">'+c.st.label+'</span><p>'+c.st.msg+'</p></div>'+meter+

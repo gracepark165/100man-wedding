@@ -26,7 +26,13 @@ assert '__SUPPORT__' in s
 s = s.replace('__SUPPORT__', json.dumps(sup, ensure_ascii=False).replace('</', '<\\/'))
 # 비용 근거: COSTS_JSON(테스트용 경로) 또는 src/costs.json. 예산 줄마다 하나씩 있어야 한다
 costs = json.loads(pathlib.Path(os.environ.get('COSTS_JSON') or (here / 'costs.json')).read_text(encoding='utf-8'))
-for k in ('rent', 'meal', 'decor', 'staff', 'dress', 'makeup', 'photo', 'flower', 'ring', 'card', 'register'):
+import re
+# 앱 소스의 예산 줄 키(key:'…')와 비용 근거 키('decor_other' 같은 costKey 값)를 모두 찾아 검사한다
+row_keys = set(re.findall(r"\{key:'([a-z_]+)',(?:costKey:[^,]*,)?name:", s))
+for m in re.findall(r"costKey:[^,]*", s):
+    row_keys |= {q for q in re.findall(r"'([a-z_]+)'", m) if q != 'public'}
+assert row_keys, '예산 줄 키를 찾지 못했습니다'
+for k in sorted(row_keys):
     assert k in costs, f"costs.json에 '{k}'가 없습니다"
     for f in ('basis', 'src', 'url', 'checked', 'assume', 'required'):
         assert f in costs[k], f"costs.json {k}에 '{f}'가 없습니다"
