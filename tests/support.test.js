@@ -84,3 +84,31 @@ test('build fails on bad support json', () => {
   const sj = base(); delete sj.eligibleItems; fs.writeFileSync(path.join(d, 'miss.json'), JSON.stringify(sj));
   assert.notEqual(runBuild({ SUPPORT_JSON: path.join(d, 'miss.json'), OUT: path.join(d, 'o2.html') }), 0);
 });
+
+const OVER_Y = '?d=q1&r=seoul&s=gs&res=y&g=30&v=public&m=catering';
+test('cut reduces scenario', () => at(fileUrl() + OVER_Y, async (page) => {
+  const c = await C(page);
+  const dec = c.cuts.find((x) => x.affects === 'decor');
+  assert.ok(dec, '장식 절감이 목록에 없음');
+  const saved = c.cuts.reduce((s, x) => s + x.save, 0);
+  assert.equal(c.cutResult.gross, c.gross - saved);
+  assert.equal(c.cutResult.scenario, c.cutResult.gross - Math.min(100, c.eligibleAmt - dec.save));
+}));
+
+test('cut warning', () => at(fileUrl() + OVER_Y, async (page) => {
+  assert.match(await page.textContent('[data-panel=budget]'), /직접 준비하면 비품비 지원 대상에서 빠질 수 있어요/);
+}));
+
+test('cut text both', async () => {
+  // 절감 목록으로 초과분을 다 덮는 조합만 쓴다 (서울·10명·도시락·공공 / 경기·20명·케이터링·야외)
+  await at(fileUrl() + '?d=q1&r=seoul&s=gs&res=y&g=10&v=public&m=box', async (page) => {
+    const t = await page.textContent('[data-panel=budget]');
+    assert.match(t, /모두 적용하면 지원 전 약 /);
+    assert.match(t, /, 지원 확정 시 약 /);
+  });
+  await at(fileUrl() + '?d=q1&r=gg&s=sw&g=20&v=outdoor&m=catering', async (page) => {
+    const t = await page.textContent('[data-panel=budget]');
+    assert.match(t, /모두 적용하면 합계가 약 /);
+    assert.doesNotMatch(t, /지원 확정 시 약/);
+  });
+});

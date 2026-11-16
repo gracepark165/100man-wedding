@@ -164,6 +164,7 @@ ul{padding:0;list-style:none}
 .h-grid .chg .k{font-size:12px;color:var(--muted)}
 .h-grid .chg .v{font-weight:600;overflow-wrap:anywhere}
 .h-grid .chg .e{font-size:12px;color:var(--accent-text);font-weight:600}
+.cut-warn{display:block;font-size:12px;color:var(--warn);margin-top:2px}
 .h-scn{font-size:13px;color:var(--accent-text);font-weight:600;margin-top:10px}
 .scenario{margin-top:12px;padding:14px 16px;border-radius:12px;border:1px dashed var(--accent);background:var(--accent-soft);display:grid;gap:6px}
 .scenario p{margin:0}
@@ -480,7 +481,7 @@ function calc(a){
   ];
   var decor={public:165,restaurant:5,outdoor:10,chapel:5}[ven.v];
   var decorNote=(ven.v==='restaurant'||ven.v==='chapel')?'기본 장식이 있어 적게 잡았어요':(ven.v==='public'?'빈 공간이라 꽃과 소품이 필요해요. 견적은 165만~250만원 수준이라 낮은 쪽으로 계산했어요':'빈 공간이라 꽃과 소품이 필요해요');
-  rows.push({key:'decor',name:'장소 장식 (꽃·소품)',note:decorNote,amt:decor,cut:{label:'조화와 직접 만든 소품으로 꾸미기',save:Math.round(decor/2)}});
+  rows.push({key:'decor',name:'장소 장식 (꽃·소품)',note:decorNote,amt:decor,cut:{label:'조화와 직접 만든 소품으로 꾸미기',save:Math.round(decor/2),affects:'decor'}});
   var staffN=g<=10?1:(g<=30?2:3),staffAmt=staffN*5;
   rows.push({key:'staff',name:'안내요원 알바비',note:staffN+'명 × 5만원 (4시간 기준)',amt:staffAmt,cut:{label:'가족·지인에게 안내 부탁하기',save:staffAmt}});
   FIXED.forEach(function(f){rows.push({key:f.key,name:f.name,amt:f.amt,cut:f.cut})});
@@ -508,6 +509,11 @@ function calc(a){
     var acc=0;
     for(var i=0;i<list.length&&acc<over;i++){cuts.push(list[i]);acc+=list[i].save}
   }
+  /* 절감을 모두 적용했을 때: 직접 준비로 줄인 지원 대상 금액만큼 지원 시나리오도 줄어든다 */
+  var cutSaved=0,cutElig=0;
+  cuts.forEach(function(x){cutSaved+=x.save;if(x.affects&&SUPPORT.eligibleItems.indexOf(x.affects)>=0)cutElig+=x.save});
+  var cutGross=gross-cutSaved;
+  var cutResult={gross:cutGross,scenario:canSup?cutGross-Math.min(SUPPORT.max,Math.max(0,eligibleAmt-cutElig)):null};
   var tips=[];
   if(g>1)tips.push({t:'하객을 1명 줄이면 식대가 줄어요',v:'-'+won(per)});
   var alt=null;
@@ -515,7 +521,7 @@ function calc(a){
   if(alt){var sv=Math.round((meal.per-alt.per)*fm(sub)*g);if(sv>=3)tips.push({t:'식사를 '+alt.label+'(으)로 바꾸면',v:'-'+won(sv)})}
   if(reserve>0&&per>0){var extra=Math.floor(reserve/per);if(extra>=1)tips.push({t:'예비비를 쓰면 하객을 '+extra+'명 더 모실 수 있어요',v:'+'+extra+'명'})}
 
-  return {d:d,sub:sub,reg:reg,g:g,ven:ven,meal:meal,per:per,rows:rows,gross:gross,total:total,reserve:reserve,over:over,st:st,cuts:cuts,tips:tips,
+  return {d:d,sub:sub,reg:reg,g:g,ven:ven,meal:meal,per:per,rows:rows,gross:gross,total:total,cutResult:cutResult,reserve:reserve,over:over,st:st,cuts:cuts,tips:tips,
     wd:wd,today:today,days:days,gl:find('guests',a.guests,a).label,supportScenario:supportScenario,scenarioTotal:gross-supportScenario,supportStatus:supportStatus,supportYear:supportYear,eligibleAmt:eligibleAmt,res:find('res',a.res,a)};
 }
 
@@ -647,8 +653,10 @@ function panelBudget(c){
   var cutHtml='';
   if(c.cuts.length){
     var saved=0;c.cuts.forEach(function(x){saved+=x.save});
-    cutHtml='<h2 class="sec">이렇게 줄이면 맞출 수 있어요</h2><ul class="tips">'+c.cuts.map(function(x){return '<li><span>'+x.label+'</span><b>-'+won(x.save)+'</b></li>'}).join('')+'</ul>'+
-     (saved<c.over?'<p class="fine">그래도 '+won(c.over-saved)+' 부족해요. 하객 수나 식사 방식을 함께 줄여야 해요.</p>':'<p class="fine">모두 적용하면 합계가 약 '+won(c.total-saved)+'가 돼요.</p>');
+    cutHtml='<h2 class="sec">이렇게 줄이면 맞출 수 있어요</h2><ul class="tips">'+c.cuts.map(function(x){
+      var warn=c.supportStatus&&x.affects&&SUPPORT.eligibleItems.indexOf(x.affects)>=0?'<small class="cut-warn">직접 준비하면 비품비 지원 대상에서 빠질 수 있어요</small>':'';
+      return '<li><span>'+x.label+warn+'</span><b>-'+won(x.save)+'</b></li>'}).join('')+'</ul>'+
+     (saved<c.over?'<p class="fine">그래도 '+won(c.over-saved)+' 부족해요. 하객 수나 식사 방식을 함께 줄여야 해요.</p>':(c.cutResult.scenario!=null?'<p class="fine">모두 적용하면 지원 전 약 '+won(c.cutResult.gross)+', 지원 확정 시 약 '+won(c.cutResult.scenario)+'이에요.</p>':'<p class="fine">모두 적용하면 합계가 약 '+won(c.cutResult.gross)+'가 돼요.</p>'));
   }
   var tips=c.tips.length?'<h2 class="sec">식대 조절 방법</h2><ul class="tips">'+c.tips.map(function(x){return '<li><span>'+x.t+'</span><b>'+x.v+'</b></li>'}).join('')+'</ul>':'';
   return '<div class="status '+(c.st.lv==='ok'?'':c.st.lv)+'"><span class="pill">'+c.st.label+'</span><p>'+c.st.msg+'</p></div>'+meter+
